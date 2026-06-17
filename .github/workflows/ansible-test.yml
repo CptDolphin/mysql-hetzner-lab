@@ -14,13 +14,17 @@ permissions:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ansible   # cwd=ansible/ → ansible.cfg roles_path=roles rozwiązuje role
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install "ansible-lint>=24.9"
-      - run: ansible-lint ansible/
+      - run: pip install "ansible-lint>=24.9" ansible-core
+      - run: ansible-galaxy collection install -r requirements.yml
+      - run: ansible-lint
 
   molecule:
     runs-on: ubuntu-latest
@@ -32,6 +36,8 @@ jobs:
           python-version: "3.12"
       - name: Install test deps
         run: pip install -r requirements-dev.txt
+      - name: Install collections
+        run: ansible-galaxy collection install -r ansible/requirements.yml
       - name: Molecule dla ról ze scenariuszem (bezpieczne gdy brak)
         run: |
           set -euo pipefail

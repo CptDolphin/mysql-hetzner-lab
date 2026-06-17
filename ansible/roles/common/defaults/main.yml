@@ -1,0 +1,20 @@
+---
+# Strefa czasowa (nadpisywana w group_vars). Domyślnie UTC.
+common_timezone: "Etc/UTC"
+
+# Pakiety bazowe (utility + zależności kolejnych ról). ufw/fail2ban/unattended-upgrades
+# instaluje i konfiguruje rola os_hardening — tutaj tylko fundament systemowy.
+common_packages:
+  - ca-certificates
+  - curl
+  - gnupg
+  - lsb-release
+  - tzdata
+  - dbus            # timedatectl w kontenerze/molecule potrzebuje busa
+  - git
+  - vim
+  - jq
+  - htop
+  - ncdu
+  - tmux
+  - unzip
