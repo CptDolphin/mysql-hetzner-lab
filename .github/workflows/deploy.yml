@@ -1,0 +1,33 @@
+---
+name: deploy
+
+# Szkielet (Faza 1). Pełna implementacja: Faza 2+. Uruchamiany ręcznie do czasu wpięcia infry.
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Git ref do wdrożenia"
+        default: main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production   # reguła approval — skonfiguruj w Settings → Environments
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+      - name: TODO — deploy przez SSH (Faza 2+)
+        run: |
+          echo "Szkielet deploy. Implementacja Faza 2+:"
+          echo " 1) klucz SSH z secrets (SSH_PRIVATE_KEY) → host (key-only, fail2ban chroni 22)"
+          echo " 2) ansible-galaxy collection install -r ansible/requirements.yml"
+          echo " 3) ansible-playbook ansible/playbooks/site.yml -i <inventory z TF output>"
+          echo " 4) post-deploy smoke (MySQL up, binlog ON, apka insert->delete, porty)"

@@ -5,6 +5,7 @@ exclude_paths:
   - .venv/
   - .github/
   - .cache/
+  - ansible/molecule-template/   # wzorzec z placeholderem roli (REPLACE_WITH_ROLE_NAME)
 
 # yamllint pilnuje formatu YAML osobno
 skip_list:

@@ -10,7 +10,9 @@ Decyzja: [ADR-0004](../decisions/0004-github-actions.md). Dyscyplina (z `CLAUDE.
 5. **Post-deploy smoke:** po deployu na serwer — MySQL up, binlog ON, apka robi insert→delete, porty zamknięte z zewnątrz.
 
 ## Workflowy (`.github/workflows/`)
-- **`ci.yml`** (on PR): lint + Molecule + `terraform plan`. **Bez sekretów na PR z forków.** Blokuje merge, gdy czerwone.
+- **`ci.yml`** (PR/push): `yamllint` + `gitleaks` + Terraform `fmt`/`init`/`validate`. Szybka bramka.
+- **`ansible-test.yml`** (na `ansible/**`): `ansible-lint` + **Molecule** dla każdej roli mającej `molecule/default/`
+  (harness: [`ansible/molecule-template/`](../../ansible/molecule-template/), deps w `requirements-dev.txt`). Bezpieczny, gdy brak ról.
 - **`deploy.yml`** (on merge to `main` / `workflow_dispatch`): SSH do publicznego hosta (klucz z GitHub Secrets) →
   `ansible-playbook site.yml` → **post-deploy smoke**. `environment: production` z regułą approval.
 - **`restore-drill.yml`** (`schedule`, tygodniowo): efemeryczny VM → restore + PITR z offsite → asercje → teardown.

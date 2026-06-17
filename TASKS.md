@@ -36,9 +36,12 @@ Obrona/DDoS warstwowo → [docs/explanation/security.md](docs/explanation/securi
 - **Zrobione:** struktura + configi lint + `ci.yml` (lint) + szablony + `.sops.yaml` (stub); `terraform validate` OK, `ansible-lint` 0 failures.
 - **Zostało:** wygenerować klucz **age** i wpiąć do `.sops.yaml` (realne sekrety); ew. `git remote` na GitHub.
 
-### [ ] Faza 1 — CI/CD & Test Automation `[infra]` → [ci-cd-and-testing.md](docs/explanation/ci-cd-and-testing.md)
+### [~] Faza 1 — CI/CD & Test Automation `[infra]` → [ci-cd-and-testing.md](docs/explanation/ci-cd-and-testing.md)
 - **Cel:** pipeline egzekwujący jakość + harness Molecule/Testinfra, zanim powstaną role.
-- **DoD:** `ci.yml` blokuje PR z błędem lint/idempotencji; `deploy.yml` (pusty `site.yml`) zielony; sekrety zamaskowane.
+- **DoD:** `ci.yml` blokuje PR z błędem lint; harness Molecule gotowy; sekrety zamaskowane.
+- **Zrobione:** `ci.yml` (yamllint/gitleaks/terraform), `ansible-test.yml` (ansible-lint+Molecule, bezpieczny gdy brak ról),
+  `molecule-template/` + `requirements-dev.txt`, szkielety `deploy`/`restore-drill`/`security-scan` (workflow_dispatch).
+- **Zostało:** ożywić `deploy`/drille wraz z Fazami 2/5/6/8; reguła approval `environment: production` w Settings.
 - **Bramka:** pierwszy realny `deploy.yml` na żywy serwer — GO.
 
 ### [ ] Faza 2 — Infra (Terraform) `[infra]` → [architecture.md](docs/explanation/architecture.md)

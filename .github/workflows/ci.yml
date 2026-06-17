@@ -8,12 +8,15 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read   # gitleaks-action na PR czyta listę commitów
 
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # gitleaks potrzebuje pełnej historii do diffu PR
 
       - name: yamllint
         uses: ibiqlik/action-yamllint@v3
@@ -25,15 +28,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: ansible-lint
-        run: |
-          pip install "ansible-lint>=24.9"
-          ansible-lint ansible/
+  # ansible-lint + Molecule → osobny workflow ansible-test.yml (triggery na ansible/**)
 
   terraform:
     runs-on: ubuntu-latest
