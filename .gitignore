@@ -1,0 +1,35 @@
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfvars
+!*.tfvars.example
+override.tf
+override.tf.json
+# .terraform.lock.hcl — COMMITUJEMY (pin providerów, konwencja CLAUDE.md)
+
+# Ansible
+*.retry
+.vault_pass
+
+# SOPS / sekrety (zaszyfrowane *.sops.yml MOŻNA commitować; plaintext NIE)
+secrets/
+*.dec
+*.decrypted
+
+# Python (molecule / testinfra)
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+**/.molecule/
+
+# Env
+.env
+.env.*
+!.env.example
+
+# OS / edytor
+.DS_Store
+*.swp

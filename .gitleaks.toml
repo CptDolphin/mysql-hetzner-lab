@@ -1,0 +1,16 @@
+title = "gitleaks — mysql-hetzner-lab"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Pliki przykładowe i placeholdery (nie sekrety)"
+paths = [
+  '''.*\.example$''',
+  '''terraform/terraform\.tfvars\.example''',
+  '''\.sops\.yaml''',
+]
+regexes = [
+  '''ssh-ed25519 AAAA\.\.\.''',
+  '''age1PLACEHOLDER''',
+]

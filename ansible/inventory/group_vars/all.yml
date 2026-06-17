@@ -1,0 +1,5 @@
+---
+# Zmienne NIE-wrażliwe, wspólne dla hostów. Sekrety → *.sops.yml (Faza 0 — sekrety).
+mysql_version: "8.0"
+mysql_bind_address: "127.0.0.1"
+timezone: "Europe/Warsaw"

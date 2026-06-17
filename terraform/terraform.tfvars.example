@@ -1,0 +1,6 @@
+# Skopiuj do terraform.tfvars (gitignored) lub podaj jako TF_VAR_* z CI/sekretu.
+# hcloud_token NIE trzymamy w pliku — podawaj przez TF_VAR_hcloud_token (sekret).
+
+ssh_public_key = "ssh-ed25519 AAAA... twoj-klucz-admina"
+server_type    = "cx22"
+location       = "nbg1"

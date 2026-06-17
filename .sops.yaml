@@ -1,0 +1,10 @@
+# Reguły szyfrowania SOPS (age).
+# Setup (Faza 0 — sekrety):
+#   age-keygen -o ~/.config/sops/age/keys.txt
+#   → publiczny klucz (age1...) wstaw poniżej zamiast placeholdera.
+# Szyfrowane pliki nazywamy *.sops.yml i MOŻNA je commitować; plaintext sekretów NIE.
+---
+creation_rules:
+  - path_regex: (secrets|ansible/inventory/group_vars)/.*\.sops\.ya?ml$
+    # age: age1PLACEHOLDER_wstaw_publiczny_klucz   # TODO Faza 0 — sekrety
+    encrypted_regex: "^(.*[Pp]assword.*|.*[Ss]ecret.*|.*[Tt]oken.*|.*[Kk]ey.*|.*[Pp]assphrase.*)$"

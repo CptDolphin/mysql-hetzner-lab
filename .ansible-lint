@@ -1,0 +1,16 @@
+---
+profile: moderate
+
+exclude_paths:
+  - .venv/
+  - .github/
+  - .cache/
+
+# yamllint pilnuje formatu YAML osobno
+skip_list:
+  - yaml[line-length]
+
+# Reguły, które chcemy mieć jako twarde, gdy pojawią się role
+enable_list:
+  - no-changed-when
+  - fqcn-builtins
