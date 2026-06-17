@@ -1,0 +1,27 @@
+---
+name: security-scan
+
+# Szkielet (Faza 1). Skan portów z zewnątrz dochodzi w Fazie 8 (gdy serwer istnieje).
+on:
+  workflow_dispatch:
+  # schedule:
+  #   - cron: "0 4 * * *"   # codziennie 04:00 UTC — włączyć w Fazie 8
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: trivy — skan repo (config/fs)
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          exit-code: "0"   # skeleton: na razie nie blokuj; zaostrzymy w Fazie 8
+      - name: TODO — skan portów z zewnątrz (Faza 8)
+        run: |
+          echo "Faza 8: nmap z zewnatrz — asercja 3306 zamkniety; otwarte tylko 22/80/443."

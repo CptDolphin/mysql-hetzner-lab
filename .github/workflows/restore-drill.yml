@@ -1,0 +1,24 @@
+---
+name: restore-drill
+
+# Szkielet (Faza 1). Implementacja: Faza 5 (restore) + Faza 6 (PITR).
+# `schedule` włączymy, gdy backup będzie działał — inaczej drill nie miałby czego odtwarzać.
+on:
+  workflow_dispatch:
+  # schedule:
+  #   - cron: "0 3 * * 1"   # pon. 03:00 UTC — włączyć w Fazie 5/6
+
+permissions:
+  contents: read
+
+jobs:
+  drill:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: TODO — restore + PITR drill (Faza 5/6)
+        run: |
+          echo "Szkielet restore/PITR drill. Egzekwuje 'backup bez restore = brak backupu'."
+          echo " - provisioning efemerycznego hosta/kontenera"
+          echo " - restore pełny (XtraBackup) z offsite + replay binlogów do --stop-datetime"
+          echo " - asercje: checksum danych, zmierzony RTO; teardown"
