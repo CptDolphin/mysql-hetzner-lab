@@ -29,10 +29,12 @@ Obrona/DDoS warstwowo → [docs/explanation/security.md](docs/explanation/securi
 
 ## Fazy
 
-### [ ] Faza 0 — Scaffolding & fundamenty `[infra/docs]`
-- **Cel:** repo (GitHub), struktura `docs/`, ADR-0001..0006, sekrety (**Ansible Vault + SOPS/age**), **pre-commit**
-  (ansible-lint/gitleaks/fmt), `.tool-versions`, Issue/PR templates.
-- **DoD:** szkielet w GitHub; ADR-y opisują DLACZEGO; `.gitignore` chroni state/sekrety; `pre-commit` zielony. **Bramka:** brak.
+### [~] Faza 0 — Scaffolding & fundamenty `[infra/docs]`
+- **Cel:** repo, struktura `docs/`+`ansible/`+`terraform/`+`app/`+`.github/`, ADR-0001..0006, sekrety (**SOPS/age**),
+  **pre-commit** (ansible-lint/gitleaks/fmt), `.tool-versions`, Issue/PR templates, lint CI.
+- **DoD:** szkielet w repo; ADR-y opisują DLACZEGO; `.gitignore` chroni state/sekrety; lint zielony. **Bramka:** brak.
+- **Zrobione:** struktura + configi lint + `ci.yml` (lint) + szablony + `.sops.yaml` (stub); `terraform validate` OK, `ansible-lint` 0 failures.
+- **Zostało:** wygenerować klucz **age** i wpiąć do `.sops.yaml` (realne sekrety); ew. `git remote` na GitHub.
 
 ### [ ] Faza 1 — CI/CD & Test Automation `[infra]` → [ci-cd-and-testing.md](docs/explanation/ci-cd-and-testing.md)
 - **Cel:** pipeline egzekwujący jakość + harness Molecule/Testinfra, zanim powstaną role.
