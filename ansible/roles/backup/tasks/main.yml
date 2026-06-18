@@ -41,7 +41,11 @@
     name: "{{ backup_user }}"
     password: "{{ backup_password }}"
     host: localhost
-    priv: "*.*:RELOAD,PROCESS,LOCK TABLES,REPLICATION CLIENT,BACKUP_ADMIN"
+    priv:
+      "*.*": "RELOAD,PROCESS,LOCK TABLES,REPLICATION CLIENT,BACKUP_ADMIN"
+      "performance_schema.log_status": "SELECT"
+      "performance_schema.keyring_component_status": "SELECT"
+      "performance_schema.replication_group_members": "SELECT"
     state: present
     login_unix_socket: /run/mysqld/mysqld.sock
 
