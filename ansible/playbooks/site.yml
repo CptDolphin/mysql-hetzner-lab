@@ -13,3 +13,4 @@
     - fail2ban
     - sysctl_hardening
     - nftables
+    - mysql

@@ -9,6 +9,7 @@ paths = [
   '''.*\.example$''',
   '''terraform/terraform\.tfvars\.example''',
   '''\.sops\.yaml''',
+  '''ansible/roles/[^/]+/molecule/default/converge\.yml''',
 ]
 regexes = [
   '''ssh-ed25519 AAAA\.\.\.''',

@@ -53,14 +53,15 @@ Obrona/DDoS warstwowo → [docs/explanation/security.md](docs/explanation/securi
 - **Cel:** **osobne role** (jak w KontrahentCheck): `common` ✓ · `unattended_upgrades` · `sshd_lockdown` · `fail2ban`
   · `sysctl_hardening` (CIS) · `nftables` (synproxy/conn-limit) · rotacja logów · montaż Volume + Lynis w CI.
 - **DoD:** każda rola → Molecule (idempotencja + Testinfra) zielone; `ssh root@` odrzucony; **Lynis score w CI (próg + trend)**.
-- **Postęp:** `common` (#2) ✓ · `unattended_upgrades` (#3) ✓ · `sshd_lockdown` (#4) ✓ · `fail2ban` (#5) ✓ · `sysctl_hardening` (#6) ✓ · `nftables` (w toku) · zostaje Lynis w CI.
+- **Postęp:** wszystkie role ✓ (`common` #2 · `unattended_upgrades` #3 · `sshd_lockdown` #4 · `fail2ban` #5 · `sysctl_hardening` #6 · `nftables` #7); molecule zrównoleglone matrix (#8).
+- **Lynis: odłożony na realny host** (post-Faza 2, wpięty w post-deploy/scheduled) — w bramkowanym kontenerze (usługi nie startują) score byłby niereprezentatywny.
 - **Bramka:** play mutujący żywy serwer — `--check`, potem GO.
 
-### [ ] Faza 4 — MySQL (Ansible) `[infra]` → [architecture.md](docs/explanation/architecture.md)
-- **Cel:** rola `mysql` — bind 127.0.0.1, secure-installation, TLS, least-priv user (per-user MAX_*), binlog ROW, OOM-protect
+### [~] Faza 4 — MySQL (Ansible) `[infra]` → [architecture.md](docs/explanation/architecture.md)
+- **Cel:** rola `mysql` — bind 127.0.0.1, secure-installation, least-priv user (per-user MAX_*), binlog ROW, OOM-protect
   **+ ProxySQL** (pooling, miękkie odbicie connection-flood; apka łączy się przez ProxySQL).
-- **DoD:** `SHOW MASTER STATUS`=binlogi; `have_ssl=YES`; zdalne `mysql -h <ip>`=timeout; app-user bez `DROP`;
-  ruch apki idzie przez ProxySQL. Testinfra asertuje.
+- **DoD:** binlog ON+ROW; zdalne `mysql -h <ip>`=timeout; app-user bez `DROP`; ruch apki przez ProxySQL. Testinfra asertuje.
+- **Postęp:** `mysql` (w toku) · `proxysql` (następne). TLS app-usera: dograny przy ProxySQL/apce.
 - **Bramka:** play mutujący — GO.
 
 ### [ ] Faza 5 — Backup (XtraBackup) + restore-drill `[infra]` → [backup-and-recovery.md](docs/explanation/backup-and-recovery.md)
