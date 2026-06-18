@@ -52,6 +52,13 @@ nginx -t && systemctl reload nginx
 # (4) Awaryjnie utnij atakowaną ścieżkę (dopisz w /etc/nginx/conf.d/app.conf w bloku 443):
 #     location = /atakowana { return 429; }
 nginx -t && systemctl reload nginx
+# (5) LOAD-SHEDDING — gdy źródeł jest ZA DUŻO by blokować po IP: serwuj tanią odpowiedź
+#     zamiast obciążać apkę/bazę. W bloku 443 podmień `location /` na:
+#       location / { limit_req zone=applimit burst=5 nodelay; return 503 "busy\n"; }
+#     (zero ruchu do apki/MySQL — backend oddycha). Reload jak wyżej.
+# (6) PÓŁ-AUTOMAT — banuj najgłośniejsze IP w pętli (botnet = ręcznie się nie wyrobisz):
+watch -n 30 'tail -n 5000 /var/log/nginx/access.log | awk "{print \$1}" | sort | uniq -c \
+  | sort -rn | awk "\$1>500{print \$2}" | while read -r ip; do fail2ban-client set nginx-limit-req banip "$ip"; done'
 ```
 
 ### 2B. Brute-force SSH
@@ -94,6 +101,24 @@ mysql -e "SHOW GLOBAL STATUS LIKE 'Threads_running'"
 dmesg -T | grep -i 'killed process' | tail         # czy OOM-killer coś ruszył?
 ```
 W ostateczności skala pionowa (resize cx22→cx32) — **bramka płatna, pytaj GO.**
+
+---
+
+## 2E. Eskalacja — gdy host nie wystarcza (recurring / duży / rozproszony DDoS)
+**Uczciwie: pojedynczy VM bez CDN nie wygra z botnetem (tysiące rotujących IP) ani z floodem łącza.** Host-level
+(sekcje 2A-2D) zatrzymuje pojedyncze/kilka źródeł, brute-force, connection-flood — rozproszony L7 i wolumetrykę przerośnie.
+
+**Jeśli DDoS jest CZĘSTY → właściwym rozwiązaniem jest edge/CDN przed apką** (świadomie odrzucony w
+[ADR-0005](../decisions/0005-ekspozycja-publiczna.md), ale to break-glass i prawdopodobnie sygnał, że trzeba zmienić ADR).
+
+**Break-glass: Cloudflare przed apką (~15 min):**
+1. Dodaj domenę do Cloudflare; rekord A z **proxy ON** (pomarańczowa chmurka) — origin-IP znika za edge.
+2. **Under Attack Mode** (Security → Settings) — challenge JS/Turnstile dla całego ruchu.
+3. WAF **rate-limiting rule** + managed rules; blokada ASN/kraju z analytics, jeśli atak skupiony.
+4. **Zamknij origin:** w Hetzner FW wpuść 443 **tylko z zakresów IP Cloudflare** (origin nieosiągalny wprost).
+
+Wtedy wolumetrykę i rozproszony L7 absorbuje Cloudflare; host robi tylko backend. **Gdy DDoS jest regularny, to nie
+gold-plating — to brakująca warstwa.** Zostaje na stałe → spisz nowy ADR (zmiana ekspozycji).
 
 ---
 
