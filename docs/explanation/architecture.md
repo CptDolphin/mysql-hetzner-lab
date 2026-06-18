@@ -10,24 +10,26 @@ localhost). **Aplikacja jest PUBLICZNA** (80/443) za reverse-proxy **nginx** (TL
 sieciowa Hetznera ([security.md](security.md), [ADR-0005](../decisions/0005-ekspozycja-publiczna.md)).
 
 ## Diagram (aplikacja publiczna, baza prywatna)
-```
-                       Internet  (ruch publiczny + ataki)
-                              │
-        Hetzner: automatyczna ochrona wolumetryczna L3/L4 (auto)
-                              │   Hetzner FW: allow 22 (key-only), 80, 443
-  ┌───────────────────────────▼──────────── cx22 ──────────────────────────────┐
-  │  nginx (reverse-proxy: TLS (certbot), rate-limit, timeouty, conn-limit)        │
-  │     │ :80/:443 PUBLICZNE                                                     │
-  │     ▼                                                                        │
-  │  apka demo (Docker: cpu/mem limit, non-root, read-only fs)                   │
-  │     │ 127.0.0.1 → ProxySQL → MySQL + TLS, user least-priv (MAX_*_PER_HOUR)   │
-  │     ▼                                                                        │
-  │  MySQL 8.0  (bind 127.0.0.1, OOMScoreAdjust=-800, binlog ROW)                │
-  │  obrona host: nftables synproxy/conn-limit · sysctl SYN-cookies · fail2ban   │
-  │  /var/lib/mysql na osobnym Volume (prevent_destroy)                          │
-  └──────────┬─────────────────────────────────┬───────────────────────────────┘
-             ▼ XtraBackup nightly (age/gpg)     ▼ binlogi co ≤5 min (szyfrowane)
-                          Hetzner Storage Box (offsite, retencja)
+```mermaid
+flowchart TB
+    net["🌐 Internet — ruch publiczny + ataki"]
+    hz["Hetzner: ochrona wolumetryczna L3/L4 (auto)<br/>Cloud Firewall — tylko 22 / 80 / 443"]
+
+    subgraph cx22["cx22 — 1 serwer · obrona host: nftables per-IP · sysctl · fail2ban · auditd"]
+        direction TB
+        nginx["nginx — reverse-proxy<br/>TLS · rate-limit per-IP · timeouty"]
+        app["apka demo (Docker)<br/>non-root · read-only · limity cpu/mem"]
+        proxysql["ProxySQL — pooling / odbicie connection-flood"]
+        mysql[("MySQL 8.0<br/>bind 127.0.0.1 · binlog ROW · OOM-protect")]
+    end
+
+    off[("Hetzner Storage Box<br/>offsite: pełny backup + binlogi (szyfr.)")]
+
+    net --> hz --> nginx
+    nginx -->|":80/:443 → 127.0.0.1:8000"| app
+    app -->|"127.0.0.1:6033 + TLS · user least-priv"| proxysql
+    proxysql --> mysql
+    mysql -.->|"XtraBackup nightly + binlogi ≤5 min"| off
 ```
 
 ## Komponenty

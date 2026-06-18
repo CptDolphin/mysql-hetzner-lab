@@ -17,6 +17,14 @@ Aplikacja **publiczna** (80/443) za reverse-proxy **nginx** (TLS, rate-limit, ti
 (wolumetryka, auto) + `nftables`/`fail2ban`/rate-limit + izolacja zasobów apka⟂baza. **Bez CDN/VPN — świadomie**
 ([ADR-0005](docs/decisions/0005-ekspozycja-publiczna.md)). Pełny obraz: [docs/explanation/architecture.md](docs/explanation/architecture.md).
 
+```mermaid
+flowchart LR
+    net["🌐 Internet"] --> hz["Hetzner<br/>L3/L4 + Firewall"] --> nginx["nginx<br/>TLS · rate-limit per-IP"]
+    nginx --> app["apka (Docker)<br/>hardened"]
+    app --> px["ProxySQL"] --> db[("MySQL 8.0<br/>127.0.0.1 · binlog ROW")]
+    db -.->|"XtraBackup + binlogi → PITR"| off[("Storage Box<br/>offsite")]
+```
+
 ## Stack
 Terraform (`hcloud`) · Ansible (role hardening/mysql/proxysql/backup/nginx/docker-app) · MySQL 8.0 + binlog · ProxySQL ·
 Percona XtraBackup + binlogi (PITR) · Hetzner Storage Box (offsite) · Prometheus/Grafana/Loki (on-box) · GitHub Actions.
