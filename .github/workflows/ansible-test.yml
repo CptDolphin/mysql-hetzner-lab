@@ -26,9 +26,31 @@ jobs:
       - run: ansible-galaxy collection install -r requirements.yml
       - run: ansible-lint
 
-  molecule:
+  discover:
     runs-on: ubuntu-latest
     needs: lint
+    outputs:
+      roles: ${{ steps.set.outputs.roles }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: set
+        name: Wykryj role ze scenariuszem molecule
+        run: |
+          set -euo pipefail
+          roles=$(find ansible/roles -type d -path '*/molecule/default' \
+            | sed 's#/molecule/default##' | xargs -r -n1 basename | sort | jq -R . | jq -cs .)
+          echo "roles=${roles}" >> "$GITHUB_OUTPUT"
+          echo "Wykryte role: ${roles}"
+
+  molecule:
+    runs-on: ubuntu-latest
+    needs: discover
+    if: needs.discover.outputs.roles != '[]'
+    strategy:
+      fail-fast: false   # jedna rola czerwona nie ubija pozostałych
+      matrix:
+        role: ${{ fromJson(needs.discover.outputs.roles) }}
+    name: molecule (${{ matrix.role }})
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -38,17 +60,6 @@ jobs:
         run: pip install -r requirements-dev.txt
       - name: Install collections
         run: ansible-galaxy collection install -r ansible/requirements.yml
-      - name: Molecule dla ról ze scenariuszem (bezpieczne gdy brak)
-        run: |
-          set -euo pipefail
-          mapfile -t scenarios < <(find ansible/roles -type d -path '*/molecule/default' 2>/dev/null || true)
-          if [ ${#scenarios[@]} -eq 0 ]; then
-            echo "Brak ról z molecule/default — pomijam (harness gotowy, role dojdą w Fazach 3+)."
-            exit 0
-          fi
-          for s in "${scenarios[@]}"; do
-            role_dir="$(dirname "$(dirname "$s")")"
-            echo "::group::molecule test — ${role_dir}"
-            (cd "${role_dir}" && molecule test)
-            echo "::endgroup::"
-          done
+      - name: molecule test
+        working-directory: ansible/roles/${{ matrix.role }}
+        run: molecule test
