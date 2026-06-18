@@ -29,8 +29,8 @@
           "${distro_id}ESMApps:${distro_codename}-apps-security";
           "${distro_id}ESM:${distro_codename}-infra-security";
       };
-      Unattended-Upgrade::Automatic-Reboot "{{ unattended_automatic_reboot | ternary('true', 'false') }}";
-      Unattended-Upgrade::Automatic-Reboot-Time "{{ unattended_reboot_time }}";
+      Unattended-Upgrade::Automatic-Reboot "{{ unattended_upgrades_automatic_reboot | ternary('true', 'false') }}";
+      Unattended-Upgrade::Automatic-Reboot-Time "{{ unattended_upgrades_reboot_time }}";
       Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
       Unattended-Upgrade::Remove-Unused-Dependencies "true";
 
