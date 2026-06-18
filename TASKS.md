@@ -53,7 +53,7 @@ Obrona/DDoS warstwowo → [docs/explanation/security.md](docs/explanation/securi
 - **Cel:** **osobne role** (jak w KontrahentCheck): `common` ✓ · `unattended_upgrades` · `sshd_lockdown` · `fail2ban`
   · `sysctl_hardening` (CIS) · `nftables` (synproxy/conn-limit) · rotacja logów · montaż Volume + Lynis w CI.
 - **DoD:** każda rola → Molecule (idempotencja + Testinfra) zielone; `ssh root@` odrzucony; **Lynis score w CI (próg + trend)**.
-- **Postęp:** `common` (#2) ✓ · `unattended_upgrades` (w toku).
+- **Postęp:** `common` (#2) ✓ · `unattended_upgrades` (#3) ✓ · `sshd_lockdown` (w toku).
 - **Bramka:** play mutujący żywy serwer — `--check`, potem GO.
 
 ### [ ] Faza 4 — MySQL (Ansible) `[infra]` → [architecture.md](docs/explanation/architecture.md)

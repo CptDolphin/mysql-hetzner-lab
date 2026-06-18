@@ -9,3 +9,4 @@
   roles:
     - common
     - unattended_upgrades
+    - sshd_lockdown

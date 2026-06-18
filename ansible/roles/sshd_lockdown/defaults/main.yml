@@ -1,0 +1,13 @@
+---
+# Użytkownicy dopuszczeni do SSH (AllowUsers). Muszą istnieć na hoście
+# (rola admin_users/deploy tworzy ich osobno). Domyślnie tylko `deploy`.
+sshd_lockdown_allowed_users:
+  - deploy
+
+# Banner logowania (legal deterrent). ASCII — bez ozdobników łamiących lint.
+sshd_lockdown_banner: |
+  ===========================================================
+  DOSTEP TYLKO DLA AUTORYZOWANYCH UZYTKOWNIKOW.
+  Wszystkie polaczenia sa logowane. Nieautoryzowany dostep
+  bedzie zglaszany (art. 267 KK / Dyrektywa UE 2013/40).
+  ===========================================================
