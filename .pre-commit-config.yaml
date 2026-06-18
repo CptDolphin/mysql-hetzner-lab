@@ -8,9 +8,16 @@ repos:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-merge-conflict
+      - id: check-case-conflict
       - id: check-yaml
         args: [--allow-multiple-documents]
+      - id: check-json
+      - id: check-toml
       - id: check-added-large-files
+      - id: check-executables-have-shebangs
+      - id: check-shebang-scripts-are-executable
+      - id: detect-private-key
+      - id: mixed-line-ending
 
   - repo: https://github.com/antonbabenko/pre-commit-terraform
     rev: v1.96.2
@@ -22,6 +29,22 @@ repos:
     hooks:
       - id: yamllint
         args: [--strict]
+
+  - repo: https://github.com/koalaman/shellcheck-precommit
+    rev: v0.10.0
+    hooks:
+      - id: shellcheck
+
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.7
+    hooks:
+      - id: actionlint
+
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v3.6.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
 
   # ansible-lint — w CI (ansible-test.yml, cwd=ansible/), nie w pre-commit:
   # hook z roota repo nie rozwiązałby roles_path (role w ansible/roles).

@@ -1,0 +1,24 @@
+---
+name: actionlint
+
+# Statyczny lint workflowów GitHub Actions. `check-yaml`/`yamllint` walidują
+# tylko składnię YAML, NIE semantykę GHA (kontekst job/step-level w ${{ }},
+# złe needs/if, nieznane pola, błędne labele runnerów). actionlint to łapie
+# zanim zepsuty workflow zablokuje wszystkie PR-y. Bonus: lintuje też shell w `run:`.
+on:
+  pull_request:
+    paths: [".github/workflows/**"]
+  push:
+    branches: [main]
+    paths: [".github/workflows/**"]
+
+permissions:
+  contents: read
+
+jobs:
+  actionlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: actionlint
+        uses: raven-actions/actionlint@v2
