@@ -1,0 +1,71 @@
+---
+- name: Zainstaluj logrotate
+  ansible.builtin.apt:
+    name: logrotate
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Logrotate — logi kontenerów Docker
+  ansible.builtin.copy:
+    dest: /etc/logrotate.d/docker
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      # copytruncate KRYTYCZNE — Docker nie reaguje na SIGHUP.
+      /var/lib/docker/containers/*/*-json.log {
+          daily
+          rotate 14
+          compress
+          delaycompress
+          missingok
+          notifempty
+          copytruncate
+          su root root
+      }
+
+- name: Logrotate — logi Caddy
+  ansible.builtin.copy:
+    dest: /etc/logrotate.d/caddy
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      /var/log/caddy/*.log {
+          daily
+          rotate 30
+          compress
+          delaycompress
+          missingok
+          notifempty
+          copytruncate
+          su root root
+      }
+
+- name: Katalog drop-in journald
+  ansible.builtin.file:
+    path: /etc/systemd/journald.conf.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Limit rozmiaru journald
+  ansible.builtin.copy:
+    dest: /etc/systemd/journald.conf.d/99-lab.conf
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      [Journal]
+      SystemMaxUse=1G
+      SystemKeepFree=200M
+      MaxRetentionSec=30day
+      Compress=yes
+      ForwardToSyslog=no
+  notify: Restart journald
+
+- name: Smoke-test konfiguracji logrotate (dry-run)
+  ansible.builtin.command: logrotate --debug /etc/logrotate.conf
+  changed_when: false

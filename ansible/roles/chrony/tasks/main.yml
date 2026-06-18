@@ -1,0 +1,40 @@
+---
+- name: Zainstaluj chrony
+  ansible.builtin.apt:
+    name: chrony
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Konfiguracja pól NTP (kilka źródeł, failover)
+  ansible.builtin.copy:
+    dest: /etc/chrony/conf.d/99-lab.conf
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      # Komentarze MUSZĄ być w osobnych liniach (chrony 4.5 nie parsuje inline po directive).
+      pool 0.pl.pool.ntp.org iburst maxsources 4
+      pool 2.pool.ntp.org iburst maxsources 4
+      driftfile /var/lib/chrony/drift
+      makestep 1.0 3
+      rtcsync
+  notify: Restart chrony
+
+- name: Zbierz fakty o usługach systemd
+  ansible.builtin.service_facts:
+
+- name: Wyłącz systemd-timesyncd (konflikt z chrony)
+  ansible.builtin.systemd:
+    name: systemd-timesyncd
+    enabled: false
+    state: stopped
+    masked: true
+  when: "'systemd-timesyncd.service' in ansible_facts.services"
+  failed_when: false
+
+- name: Włącz + uruchom chrony
+  ansible.builtin.systemd:
+    name: chrony
+    enabled: true
+    state: started

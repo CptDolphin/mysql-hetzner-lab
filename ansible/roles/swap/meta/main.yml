@@ -1,0 +1,12 @@
+---
+galaxy_info:
+  role_name: swap
+  author: rafal
+  description: Plik swap + swappiness — bufor pamięci dla cx22 (4 GB) pod obciążeniem
+  license: MIT
+  min_ansible_version: "2.17"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - noble
+dependencies: []
