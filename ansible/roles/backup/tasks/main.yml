@@ -134,3 +134,72 @@
     name: mysql-backup.timer
     enabled: true
     daemon_reload: true
+
+# ── Archiwizacja binlogów (PITR) ─────────────────────────────────────
+- name: Skrypt archiwizacji binlogów
+  ansible.builtin.copy:
+    dest: /usr/local/bin/mysql-binlog-archive.sh
+    owner: root
+    group: root
+    mode: "0750"
+    content: |
+      #!/usr/bin/env bash
+      # Archiwizacja domkniętych binlogów dla PITR. Zarządzane przez rolę backup.
+      set -euo pipefail
+      ARCHIVE_DIR="{{ backup_dir }}/binlog"
+      DEFAULTS="/etc/mysql/xtrabackup.my.cnf"
+      DATADIR="/var/lib/mysql"
+      mkdir -p "${ARCHIVE_DIR}"
+      mysqladmin --defaults-extra-file="${DEFAULTS}" flush-logs
+      CURRENT="$(basename "$(tail -n1 "${DATADIR}/binlog.index")")"
+      for f in "${DATADIR}"/binlog.[0-9]*; do
+        base="$(basename "${f}")"
+        [ "${base}" = "${CURRENT}" ] && continue
+        cp -n "${f}" "${ARCHIVE_DIR}/"
+      done
+      {% if backup_offsite_enabled %}
+      export RESTIC_REPOSITORY="{{ backup_restic_repo }}"
+      export RESTIC_PASSWORD="{{ backup_restic_password }}"
+      restic backup "${ARCHIVE_DIR}"
+      {% endif %}
+      echo "Binlog archive OK -> ${ARCHIVE_DIR}"
+
+- name: Unit systemd — usługa archiwizacji binlogów
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/mysql-binlog-archive.service
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=MySQL binlog archive (PITR)
+      After=mysql.service
+      Requires=mysql.service
+
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/local/bin/mysql-binlog-archive.sh
+
+- name: Unit systemd — timer archiwizacji binlogów
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/mysql-binlog-archive.timer
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=MySQL binlog archive every 5 min (PITR)
+
+      [Timer]
+      OnCalendar={{ backup_binlog_oncalendar }}
+      Persistent=true
+
+      [Install]
+      WantedBy=timers.target
+  notify: Reload systemd
+
+- name: Włącz timer archiwizacji binlogów
+  ansible.builtin.systemd:
+    name: mysql-binlog-archive.timer
+    enabled: true
+    daemon_reload: true

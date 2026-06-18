@@ -73,9 +73,10 @@ Obrona/DDoS warstwowo → [docs/explanation/security.md](docs/explanation/securi
 - **Zostało:** restore-drill (Faza 6), ożywienie offsite na realnym hoście.
 - **Bramka:** restore tylko na **czystą** maszynę (nie nadpisuj żywej bazy bez GO).
 
-### [ ] Faza 6 — PITR (binlogi) + PITR-drill `[infra]` → [backup-and-recovery.md](docs/explanation/backup-and-recovery.md)
+### [~] Faza 6 — PITR (binlogi) + PITR-drill `[infra]` → [backup-and-recovery.md](docs/explanation/backup-and-recovery.md)
 - **Cel:** ciągła archiwizacja binlogów ≤5 min offsite; runbook `pitr.md`.
 - **DoD:** PITR-drill odzyskał tabelę sprzed `DROP` (output w runbooku); luka binlogów ≤5 min; PITR w `restore-drill.yml`.
+- **Postęp:** archiwizacja binlogów w roli `backup` (flush+kopia domkniętych binlogów, systemd-timer co 5 min; molecule weryfikuje realne zarchiwizowanie). **Zostało: PITR-drill** (restore pełny + `mysqlbinlog` replay do `--stop-datetime`) + runbook.
 - **Bramka:** drill na czystej maszynie.
 
 ### [ ] Faza 7 — Aplikacja demo (Docker) `[app]`

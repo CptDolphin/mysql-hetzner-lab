@@ -26,3 +26,15 @@ def test_backup_actually_runs(host):
     assert res.rc == 0, res.stderr
     cp = host.run("find /var/backups/mysql -name xtrabackup_checkpoints")
     assert cp.stdout.strip() != ""
+
+
+def test_binlog_archive_runs(host):
+    # archiwizacja binlogów (PITR) — flush + kopia domkniętego binloga
+    res = host.run("/usr/local/bin/mysql-binlog-archive.sh")
+    assert res.rc == 0, res.stderr
+    archived = host.run("ls /var/backups/mysql/binlog/ 2>/dev/null | grep -c '^binlog\\.'")
+    assert int(archived.stdout.strip() or "0") >= 1
+
+
+def test_binlog_timer_enabled(host):
+    assert host.service("mysql-binlog-archive.timer").is_enabled
