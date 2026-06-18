@@ -1,0 +1,8 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+  vars:
+    sshd_lockdown_restart_enabled: false   # kontener nie wykona restartu; testujemy config przez sshd -t/-T
+  roles:
+    - role: sshd_lockdown
