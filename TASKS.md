@@ -54,6 +54,8 @@ Obrona/DDoS warstwowo → [docs/explanation/security.md](docs/explanation/securi
   · `sysctl_hardening` (CIS) · `nftables` (synproxy/conn-limit) · rotacja logów · montaż Volume + Lynis w CI.
 - **DoD:** każda rola → Molecule (idempotencja + Testinfra) zielone; `ssh root@` odrzucony; **Lynis score w CI (próg + trend)**.
 - **Postęp:** wszystkie role ✓ (`common` #2 · `unattended_upgrades` #3 · `sshd_lockdown` #4 · `fail2ban` #5 · `sysctl_hardening` #6 · `nftables` #7); molecule zrównoleglone matrix (#8).
+- **Baseline (extra z KontrahentCheck):** `deploy_user` (#10, domyka AllowUsers) · `chrony` · `logrotate` · `swap`.
+- **DX:** `actionlint` + wzmocniony pre-commit (#11).
 - **Lynis: odłożony na realny host** (post-Faza 2, wpięty w post-deploy/scheduled) — w bramkowanym kontenerze (usługi nie startują) score byłby niereprezentatywny.
 - **Bramka:** play mutujący żywy serwer — `--check`, potem GO.
 

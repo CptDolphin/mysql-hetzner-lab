@@ -9,9 +9,12 @@
   roles:
     - common
     - deploy_user        # PRZED sshd_lockdown — sshd wpuszcza tylko tego usera
+    - chrony
+    - swap
     - unattended_upgrades
     - sshd_lockdown
     - fail2ban
     - sysctl_hardening
+    - logrotate
     - nftables
     - mysql

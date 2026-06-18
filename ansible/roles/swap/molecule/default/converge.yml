@@ -1,0 +1,10 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+  vars:
+    swap_enable: false                       # kontener nie pozwala na swapon; testujemy plik + fstab
+    swap_size_mb: 64                         # mały plik dla szybkiego CI
+    swap_file_path: /swapfile-molecule       # NIE /swapfile — koliduje ze swapem runnera GitHuba
+  roles:
+    - role: swap
