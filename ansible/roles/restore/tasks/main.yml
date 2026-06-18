@@ -1,0 +1,41 @@
+---
+- name: Skrypt restore (pełny + PITR)
+  ansible.builtin.copy:
+    dest: /usr/local/bin/mysql-restore.sh
+    owner: root
+    group: root
+    mode: "0750"
+    content: |
+      #!/usr/bin/env bash
+      # Restore pełnego backupu XtraBackup + opcjonalny PITR (replay binlogów do --stop-datetime).
+      # UWAGA: DESTRUKCYJNE — nadpisuje /var/lib/mysql. Na żywym hoście = operacja za bramką GO.
+      # Użycie: mysql-restore.sh <katalog-przygotowanego-backupu> [<"YYYY-MM-DD HH:MM:SS" UTC>]
+      set -euo pipefail
+      BACKUP="${1:?Podaj katalog przygotowanego backupu}"
+      STOP_DATETIME="${2:-}"
+      ARCHIVE="{{ restore_backup_dir }}/binlog"
+
+      systemctl stop mysql
+      rm -rf /var/lib/mysql/*
+      xtrabackup --copy-back --target-dir="${BACKUP}" --datadir=/var/lib/mysql
+      chown -R mysql:mysql /var/lib/mysql
+      systemctl start mysql
+
+      # Poczekaj aż MySQL przyjmie połączenia
+      for _ in $(seq 1 30); do
+        mysql -N -e "SELECT 1" >/dev/null 2>&1 && break
+        sleep 1
+      done
+
+      if [ -n "${STOP_DATETIME}" ]; then
+        BINFILE="$(awk '{print $1}' "${BACKUP}/xtrabackup_binlog_info")"
+        BINPOS="$(awk '{print $2}' "${BACKUP}/xtrabackup_binlog_info")"
+        # binlogi od pliku z backupu wzwyż (sort leksykalny = chronologiczny dla binlog.NNNNNN)
+        FILES="$(ls -1 "${ARCHIVE}"/binlog.[0-9]* 2>/dev/null | sort | awk -v s="${ARCHIVE}/${BINFILE}" '$0 >= s')"
+        if [ -n "${FILES}" ]; then
+          # replay od pozycji backupu do punktu w czasie; root przez auth_socket ma uprawnienia zapisu
+          # shellcheck disable=SC2086
+          mysqlbinlog --start-position="${BINPOS}" --stop-datetime="${STOP_DATETIME}" ${FILES} | mysql
+        fi
+      fi
+      echo "Restore OK (backup=${BACKUP}, pitr=${STOP_DATETIME:-none})"
