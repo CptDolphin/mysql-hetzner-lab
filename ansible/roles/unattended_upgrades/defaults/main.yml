@@ -1,0 +1,4 @@
+---
+# Auto-reboot po aktualizacji: domyślnie WYŁĄCZONY (kontrolowane maintenance window).
+unattended_automatic_reboot: false
+unattended_reboot_time: "03:00"
