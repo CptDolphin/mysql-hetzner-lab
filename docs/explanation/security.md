@@ -71,4 +71,15 @@ Same prewencyjne reguły to połowa roboty. Pełna obrona to cykl:
 - Bez anycast/scrubbing-center, IDS/IPS, mTLS-mesh, HA — enterprise/roadmapa. **CDN/WAF (Cloudflare) = świadomie odrzucona warstwa**, nie przeoczenie.
 
 ## Threat-model STRIDE-lite
-Pełny model (aktorzy, wektory, kontrole, akceptowane ryzyka) powstaje w **Fazie 8** — tu będzie jego miejsce.
+**Główny aktor:** atakujący z internetu (publiczny host). Drugorzędni: przejęta aplikacja, błąd operatora. Insider — n/d w labie.
+
+| Kategoria | Wektor | Kontrola (u nas) | Ryzyko akceptowane |
+|-----------|--------|------------------|--------------------|
+| **S**poofing | podszycie pod usera/SSH | SSH key-only + `AllowUsers deploy`, app-user least-priv, brak haseł | — |
+| **T**ampering | zmiana danych/configu | least-priv (bez `DROP`/`ALL`), `auditd` (watch `/etc/*`, sudoers, mysql), binlog (ślad zmian) | — |
+| **R**epudiation | brak śladu kto/co | `auditd` audit-trail + logi nginx/mysql/auth | logi lokalne (offsite logów = roadmapa) |
+| **I**nfo disclosure | wyciek danych/sekretów | MySQL `127.0.0.1`, TLS, sekrety w Vault/SOPS (zero w repo), `gitleaks`, kontener non-root/read-only | **origin-IP jawny** (świadomie, bez CDN) |
+| **D**oS | flood L7/L4, resource exhaustion | nftables **per-IP** (conn-count + rate), nginx `limit_req`/`limit_conn`, `fail2ban` (SSH+L7), sysctl, **izolacja zasobów apka⟂baza**, Hetzner L3/4 | **duży flood L7 / wolumetryka > pojemność hosta = twardy sufit** (patrz Granice) |
+| **E**levation | eskalacja uprawnień | sudo NOPASSWD tylko `deploy`, kontener `cap_drop: ALL`/`no-new-privileges`, sysctl (`kptr_restrict`, `dmesg_restrict`), CIS hardening | — |
+
+**Najważniejsza akceptowana granica:** kategoria **D** — bez CDN pojedynczy VM ma sufit; minimalizujemy powierzchnię i blast-radius, ale nie „wygrywamy" z floodem łącza.

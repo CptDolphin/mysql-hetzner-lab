@@ -56,10 +56,26 @@ jobs:
         if: always()
         run: docker compose down -v
 
+  trivy:
+    # Skan CVE obrazu apki (HIGH/CRITICAL z fixem = blokada).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build obrazu apki
+        run: docker build -t app:scan app
+      - name: Trivy scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: app:scan
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+          format: table
+
   publish:
     # Po zielonym smoke buduj i pchaj obraz do GHCR (tylko na merge do main).
     if: github.event_name == 'push'
-    needs: app
+    needs: [app, trivy]
     runs-on: ubuntu-latest
     permissions:
       contents: read
