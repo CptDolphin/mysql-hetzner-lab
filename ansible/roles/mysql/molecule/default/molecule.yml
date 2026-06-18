@@ -7,6 +7,7 @@ platforms:
   - name: instance
     image: geerlingguy/docker-ubuntu2404-ansible:latest
     pre_build_image: true
+    command: ""             # pusty → obraz uruchamia systemd jako PID1 (potrzebne dla start/daemon-reload)
     cgroupns_mode: host
     privileged: true
     volumes:
