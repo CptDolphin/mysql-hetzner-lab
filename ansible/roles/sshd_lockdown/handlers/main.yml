@@ -3,3 +3,4 @@
   ansible.builtin.systemd:
     name: ssh
     state: restarted
+  when: sshd_lockdown_restart_enabled | bool

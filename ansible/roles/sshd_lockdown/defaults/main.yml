@@ -4,6 +4,10 @@
 sshd_lockdown_allowed_users:
   - deploy
 
+# Restart sshd po zmianie configu. Wyłączany w molecule (kontener nie wykonuje
+# operacji active-state systemd; poprawność configu testujemy przez sshd -t/-T).
+sshd_lockdown_restart_enabled: true
+
 # Banner logowania (legal deterrent). ASCII — bez ozdobników łamiących lint.
 sshd_lockdown_banner: |
   ===========================================================
