@@ -19,6 +19,7 @@
 - name: Sformatuj swap (mkswap)
   ansible.builtin.command: "mkswap {{ swap_file_path }}"
   when: "'swap' not in swap_filetype.stdout"
+  changed_when: true
 
 - name: Wpis w /etc/fstab (bez montowania)
   ansible.posix.mount:
