@@ -1,0 +1,8 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+  vars:
+    proxysql_app_password: "molecule-lab-pw"   # tylko test; na realnym hoście z Vault/SOPS
+  roles:
+    - role: proxysql
