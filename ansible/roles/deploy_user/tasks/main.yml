@@ -1,0 +1,34 @@
+---
+- name: Utwórz użytkownika deploy
+  ansible.builtin.user:
+    name: "{{ deploy_user_name }}"
+    shell: /bin/bash
+    groups: "{{ deploy_user_groups }}"
+    append: true
+    create_home: true
+    state: present
+
+- name: Passwordless sudo dla deploy
+  ansible.builtin.copy:
+    dest: "/etc/sudoers.d/{{ deploy_user_name }}"
+    owner: root
+    group: root
+    mode: "0440"
+    content: "{{ deploy_user_name }} ALL=(ALL) NOPASSWD:ALL\n"
+    validate: "visudo -cf %s"
+
+- name: Katalog .ssh usera deploy
+  ansible.builtin.file:
+    path: "/home/{{ deploy_user_name }}/.ssh"
+    state: directory
+    owner: "{{ deploy_user_name }}"
+    group: "{{ deploy_user_name }}"
+    mode: "0700"
+
+- name: Zainstaluj klucze SSH usera deploy
+  ansible.posix.authorized_key:
+    user: "{{ deploy_user_name }}"
+    key: "{{ item }}"
+    state: present
+  loop: "{{ deploy_user_ssh_keys }}"
+  when: deploy_user_ssh_keys | length > 0

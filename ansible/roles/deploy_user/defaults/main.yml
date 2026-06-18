@@ -1,0 +1,6 @@
+---
+deploy_user_name: deploy
+deploy_user_groups:
+  - sudo
+# Publiczne klucze SSH usera deploy (z group_vars / Vault). Pusty = brak (np. bootstrap z root).
+deploy_user_ssh_keys: []
