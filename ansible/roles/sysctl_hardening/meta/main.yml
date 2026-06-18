@@ -1,0 +1,12 @@
+---
+galaxy_info:
+  role_name: sysctl_hardening
+  author: rafal
+  description: Hardening jądra przez sysctl (CIS Ubuntu 24.04 + Lynis)
+  license: MIT
+  min_ansible_version: "2.17"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - noble
+dependencies: []

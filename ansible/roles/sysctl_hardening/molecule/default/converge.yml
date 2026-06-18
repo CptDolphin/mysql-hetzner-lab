@@ -1,0 +1,8 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+  vars:
+    sysctl_hardening_apply: false   # kontener: część /proc/sys read-only; testujemy plik konfiguracyjny
+  roles:
+    - role: sysctl_hardening
