@@ -6,25 +6,27 @@
   hosts: mysql_lab
   become: true
   gather_facts: true
+  # Tagi fazowe: pozwalają odpalić warstwy niezależnie, np. `--tags bootstrap,hardening`
+  # (warstwa OS, BEZ sekretów) zanim Faza 0 dostarczy hasła dla data/app.
   roles:
-    - common
-    - deploy_user        # PRZED sshd_lockdown — sshd wpuszcza tylko tego usera
-    - chrony
-    - swap
-    - unattended_upgrades
-    - sshd_lockdown
-    - fail2ban
-    - sysctl_hardening
-    - logrotate
-    - auditd
-    - rkhunter
-    - lynis
-    - nftables
-    - mysql
-    - proxysql
-    - backup
-    - restore
-    - docker
-    - nginx
-    - certbot
-    - deploy
+    - { role: common, tags: [bootstrap] }
+    - { role: deploy_user, tags: [bootstrap] }   # PRZED sshd_lockdown — sshd wpuszcza tylko tego usera
+    - { role: chrony, tags: [bootstrap] }
+    - { role: swap, tags: [bootstrap] }
+    - { role: unattended_upgrades, tags: [hardening] }
+    - { role: sshd_lockdown, tags: [hardening] }
+    - { role: fail2ban, tags: [hardening] }
+    - { role: sysctl_hardening, tags: [hardening] }
+    - { role: logrotate, tags: [hardening] }
+    - { role: auditd, tags: [hardening] }
+    - { role: rkhunter, tags: [hardening] }
+    - { role: lynis, tags: [hardening] }
+    - { role: nftables, tags: [hardening] }
+    - { role: mysql, tags: [data] }
+    - { role: proxysql, tags: [data] }
+    - { role: backup, tags: [data] }
+    - { role: restore, tags: [data] }
+    - { role: docker, tags: [app] }
+    - { role: nginx, tags: [app] }
+    - { role: certbot, tags: [app] }
+    - { role: deploy, tags: [app] }

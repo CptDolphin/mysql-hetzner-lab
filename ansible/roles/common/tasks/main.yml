@@ -8,10 +8,16 @@
       Wspierane tylko Ubuntu >= 24.04 (wykryto {{ ansible_distribution }} {{ ansible_distribution_version }}).
     quiet: true
 
-- name: Odśwież cache apt
+# Świeży obraz Hetznera potrafi mieć NIEPEŁNY indeks apt (cloud-init ustawia znacznik
+# czasu, przez co `cache_valid_time` pomijał realny refresh → instalacja na okrojonej
+# liście pakietów = "No package matching 'jq'"). Dlatego wymuszamy pełny update z retry.
+- name: Odśwież cache apt (pełny refresh, z retry na chwilowy mirror)
   ansible.builtin.apt:
     update_cache: true
-    cache_valid_time: 3600
+  register: common_apt_update
+  retries: 3
+  delay: 5
+  until: common_apt_update is succeeded
 
 - name: Zainstaluj pakiety bazowe
   ansible.builtin.apt:
