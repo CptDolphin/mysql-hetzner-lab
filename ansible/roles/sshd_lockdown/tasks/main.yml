@@ -11,6 +11,14 @@
   args:
     creates: /etc/ssh/ssh_host_ed25519_key
 
+- name: Zapewnij katalog privilege-separation sshd (/run/sshd)
+  ansible.builtin.file:
+    path: /run/sshd
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
 - name: Banner logowania (/etc/issue.net)
   ansible.builtin.copy:
     dest: /etc/issue.net
