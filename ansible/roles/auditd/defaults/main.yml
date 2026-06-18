@@ -1,0 +1,3 @@
+---
+# start usługi + reload reguł — wyłączane w molecule (kontener nie ma podsystemu audytu jądra).
+auditd_manage_service: true

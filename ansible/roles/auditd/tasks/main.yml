@@ -1,0 +1,65 @@
+---
+- name: Zainstaluj auditd + audispd-plugins
+  ansible.builtin.apt:
+    name:
+      - auditd
+      - audispd-plugins
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Reguły audytu
+  ansible.builtin.copy:
+    dest: /etc/audit/rules.d/99-lab.rules
+    owner: root
+    group: root
+    mode: "0640"
+    content: |
+      # Auth + eskalacja
+      -w /etc/passwd -p wa -k auth_passwd
+      -w /etc/shadow -p wa -k auth_shadow
+      -w /etc/sudoers -p wa -k auth_sudoers
+      -w /etc/sudoers.d/ -p wa -k auth_sudoers
+      -w /etc/ssh/sshd_config -p wa -k ssh_config
+      -w /etc/ssh/sshd_config.d/ -p wa -k ssh_config
+      # Harmonogramy / persistencja
+      -w /etc/crontab -p wa -k cron
+      -w /etc/cron.d/ -p wa -k cron
+      -w /etc/systemd/system/ -p wa -k systemd
+      # Config MySQL
+      -w /etc/mysql/ -p wa -k mysql_config
+      # Komendy roota wywołane przez nie-roota
+      -a always,exit -F arch=b64 -S execve -F euid=0 -F auid>=1000 -F auid!=4294967295 -k root_cmd
+      # Zarządzanie userami
+      -w /usr/sbin/useradd -p x -k user_mgmt
+      -w /usr/sbin/userdel -p x -k user_mgmt
+      -w /usr/sbin/usermod -p x -k user_mgmt
+  notify: Reload auditd
+
+- name: Retencja + polityka disk-full (auditd.conf)
+  ansible.builtin.lineinfile:
+    path: /etc/audit/auditd.conf
+    regexp: "^{{ item.key }}\\s*="
+    line: "{{ item.key }} = {{ item.value }}"
+    state: present
+  loop:
+    - { key: "max_log_file", value: "50" }
+    - { key: "num_logs", value: "30" }
+    - { key: "max_log_file_action", value: "ROTATE" }
+    - { key: "space_left_action", value: "SYSLOG" }
+    - { key: "admin_space_left_action", value: "SYSLOG" }
+    - { key: "disk_full_action", value: "SUSPEND" }
+  loop_control:
+    label: "{{ item.key }}"
+  notify: Reload auditd
+
+- name: Włącz auditd (autostart)
+  ansible.builtin.systemd:
+    name: auditd
+    enabled: true
+
+- name: Uruchom auditd (poza molecule)
+  ansible.builtin.systemd:
+    name: auditd
+    state: started
+  when: auditd_manage_service | bool

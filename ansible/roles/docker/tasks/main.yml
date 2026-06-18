@@ -1,0 +1,69 @@
+---
+- name: Katalog na klucze APT
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Klucz GPG Dockera
+  ansible.builtin.get_url:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    dest: /etc/apt/keyrings/docker.asc
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Repozytorium Dockera
+  ansible.builtin.apt_repository:
+    repo: "deb [arch={{ docker_apt_arch }} signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+    filename: docker
+    state: present
+
+- name: Zainstaluj Docker CE + compose plugin
+  ansible.builtin.apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: present
+    update_cache: true
+
+- name: Katalog /etc/docker
+  ansible.builtin.file:
+    path: /etc/docker
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Hardening daemon.json (log-rotation, no-new-privileges, icc off)
+  ansible.builtin.copy:
+    dest: /etc/docker/daemon.json
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      {
+        "log-driver": "json-file",
+        "log-opts": { "max-size": "50m", "max-file": "5" },
+        "live-restore": true,
+        "userland-proxy": false,
+        "no-new-privileges": true,
+        "icc": false
+      }
+  notify: Restart docker
+
+- name: Włącz docker (autostart)
+  ansible.builtin.systemd:
+    name: docker
+    enabled: true
+
+- name: Uruchom docker (poza molecule)
+  ansible.builtin.systemd:
+    name: docker
+    state: started
+  when: docker_manage_service | bool

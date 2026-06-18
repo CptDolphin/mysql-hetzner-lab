@@ -16,5 +16,7 @@
     - fail2ban
     - sysctl_hardening
     - logrotate
+    - auditd
     - nftables
     - mysql
+    - docker

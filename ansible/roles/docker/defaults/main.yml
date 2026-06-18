@@ -1,0 +1,4 @@
+---
+docker_apt_arch: amd64
+# start usługi — wyłączany w molecule (Docker-in-Docker nie wstaje w kontenerze).
+docker_manage_service: true

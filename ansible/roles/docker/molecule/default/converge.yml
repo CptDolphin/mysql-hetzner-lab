@@ -1,0 +1,8 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+  vars:
+    docker_manage_service: false   # Docker-in-Docker nie wstaje w kontenerze; testujemy instalację + config
+  roles:
+    - role: docker
