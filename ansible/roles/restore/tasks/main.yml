@@ -17,7 +17,7 @@
 
       systemctl stop mysql
       rm -rf /var/lib/mysql/*
-      xtrabackup --copy-back --target-dir="${BACKUP}"
+      xtrabackup --copy-back --target-dir="${BACKUP}" --datadir=/var/lib/mysql
       chown -R mysql:mysql /var/lib/mysql
       systemctl start mysql
 
