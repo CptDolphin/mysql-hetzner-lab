@@ -6,6 +6,8 @@ backup_password: ""
 backup_dir: /var/backups/mysql
 backup_keep_days: 7
 backup_timer_oncalendar: "*-*-* 02:30:00"
+# Archiwizacja binlogów (PITR) — co 5 min flush+kopia domkniętych binlogów offsite/lokalnie.
+backup_binlog_oncalendar: "*-*-* *:0/5:00"
 
 # Offsite (restic → Hetzner Storage Box). Domyślnie wyłączone (gated) — w teście/lokalnie tylko backup lokalny.
 backup_offsite_enabled: false
