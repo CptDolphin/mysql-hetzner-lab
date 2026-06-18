@@ -9,8 +9,7 @@ common_packages:
   - curl
   - gnupg
   - lsb-release
-  - tzdata
-  - dbus            # timedatectl w kontenerze/molecule potrzebuje busa
+  - tzdata          # /usr/share/zoneinfo/* dla symlinku strefy czasowej
   - git
   - vim
   - jq

@@ -18,6 +18,17 @@
     name: "{{ common_packages }}"
     state: present
 
-- name: Ustaw strefę czasową
-  community.general.timezone:
-    name: "{{ common_timezone }}"
+- name: Ustaw strefę czasową — symlink /etc/localtime
+  ansible.builtin.file:
+    src: "/usr/share/zoneinfo/{{ common_timezone }}"
+    dest: /etc/localtime
+    state: link
+    force: true
+
+- name: Ustaw strefę czasową — /etc/timezone
+  ansible.builtin.copy:
+    content: "{{ common_timezone }}\n"
+    dest: /etc/timezone
+    owner: root
+    group: root
+    mode: "0644"
