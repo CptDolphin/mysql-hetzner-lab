@@ -8,3 +8,4 @@
   gather_facts: true
   roles:
     - common
+    - unattended_upgrades

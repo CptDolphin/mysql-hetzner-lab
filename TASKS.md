@@ -49,11 +49,11 @@ Obrona/DDoS warstwowo → [docs/explanation/security.md](docs/explanation/securi
 - **DoD:** `terraform plan` czysty (0 destroy); skan portów = tylko dozwolone; `validate`/`plan` w CI.
 - **Bramka:** `terraform apply` / `hcloud create` — pokaż plan, czekaj GO (płatne).
 
-### [ ] Faza 3 — Hardening OS (Ansible) `[infra]` → [security.md](docs/explanation/security.md)
-- **Cel:** rola `os-hardening` (SSH key-only/no-root, fail2ban, nftables synproxy/conn-limit, sysctl, rotacja logów, montaż Volume)
-  **+ CIS hardening (role dev-sec)** — kopiowane z KontrahentCheck.
-- **DoD:** Molecule idempotencja (2. run 0 zmian); `ssh root@` odrzucony; Testinfra: porty/serwisy/usery;
-  **Lynis score w CI (próg + trend)**.
+### [~] Faza 3 — Hardening OS (Ansible) `[infra]` → [security.md](docs/explanation/security.md)
+- **Cel:** **osobne role** (jak w KontrahentCheck): `common` ✓ · `unattended_upgrades` · `sshd_lockdown` · `fail2ban`
+  · `sysctl_hardening` (CIS) · `nftables` (synproxy/conn-limit) · rotacja logów · montaż Volume + Lynis w CI.
+- **DoD:** każda rola → Molecule (idempotencja + Testinfra) zielone; `ssh root@` odrzucony; **Lynis score w CI (próg + trend)**.
+- **Postęp:** `common` (#2) ✓ · `unattended_upgrades` (w toku).
 - **Bramka:** play mutujący żywy serwer — `--check`, potem GO.
 
 ### [ ] Faza 4 — MySQL (Ansible) `[infra]` → [architecture.md](docs/explanation/architecture.md)
