@@ -1,0 +1,14 @@
+---
+deploy_app_dir: /opt/mysql-lab-app
+deploy_image: "ghcr.io/cptdolphin/mysql-hetzner-lab-app:latest"
+
+# Apka łączy się do bazy przez ProxySQL na localhost.
+deploy_db_host: "127.0.0.1"
+deploy_db_port: 6033
+deploy_db_user: appuser
+deploy_db_password: ""        # z Vault/SOPS
+deploy_db_name: appdb
+deploy_heartbeat_interval: 10
+
+# docker compose pull/up + smoke — wyłączane w molecule (brak Dockera/obrazu).
+deploy_manage_compose: true

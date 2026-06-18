@@ -55,3 +55,26 @@ jobs:
       - name: Teardown
         if: always()
         run: docker compose down -v
+
+  publish:
+    # Po zielonym smoke buduj i pchaj obraz do GHCR (tylko na merge do main).
+    if: github.event_name == 'push'
+    needs: app
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: app
+          push: true
+          tags: |
+            ghcr.io/cptdolphin/mysql-hetzner-lab-app:latest
+            ghcr.io/cptdolphin/mysql-hetzner-lab-app:${{ github.sha }}
