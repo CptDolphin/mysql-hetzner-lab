@@ -11,6 +11,9 @@ def test_ruleset_file(host):
     assert "policy drop" in f.content_string
     assert "tcp dport 22" in f.content_string
     assert "tcp dport { 80, 443 }" in f.content_string
+    # limity PER-IP (nie globalne) — kluczowe dla obrony przed pojedynczym atakującym IP
+    assert "meter web-conn" in f.content_string
+    assert "meter web-rate" in f.content_string
 
 
 def test_ruleset_syntax_valid(host):

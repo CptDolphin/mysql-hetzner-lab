@@ -23,10 +23,15 @@ Realne ryzyko nie brzmi „internet zabije bazę", tylko „apka pod atakiem L7 
   nie zafloodzi bazy.
 
 ## Hardening
-- **OS (Ansible):** SSH key-only/no-root, `fail2ban` (bany na **realnych IP** — bez CDN źródłowe IP są prawdziwe),
-  `nftables` (synproxy/conn-limit), sysctl (SYN-cookies, rp_filter, rate-limit), `unattended-upgrades`, **rotacja logów**
-  (log-flood = disk-fill DoS).
-- **Reverse-proxy (nginx):** rate-limit per-IP, timeouty (read/write/idle), limit rozmiaru żądania — dławi flood L7 i slowloris zanim trafi do apki.
+- **OS (Ansible):** SSH key-only/no-root, `fail2ban` (bany na **realnych IP** + jaile L7 `nginx-limit-req`/`nginx-botsearch`),
+  `nftables`, sysctl, `unattended-upgrades`, **rotacja logów** (log-flood = disk-fill DoS).
+- **nftables — limity PER-IP (kluczowe):** zamiast globalnego rate-limitu, `meter { ip saddr ct count over 50 }` i
+  `meter { ip saddr limit rate over 25/s }` → **jeden atakujący IP jest throttlowany, nie cały port**. Plus drop
+  zniekształconych pakietów (NULL/XMAS/SYN-FIN). SYN-cookies (sysctl). *(synproxy = roadmapa — zależny od modułu jądra.)*
+- **sysctl anty-DDoS:** `tcp_synack_retries=2` (szybki drain SYN-backlogu), `somaxconn`, `netdev_max_backlog`,
+  `nf_conntrack_max`, `tcp_rfc1337`, krótszy `tcp_fin_timeout`.
+- **Reverse-proxy (nginx):** `limit_req`/`limit_conn` per-IP, timeouty (read/write/idle), limit rozmiaru żądania —
+  dławi flood L7 i slowloris zanim trafi do apki.
 - **MySQL:** bind `127.0.0.1`, `mysql_secure_installation`-równoważnik, `validate_password`, `skip-name-resolve`
   (slow-DNS DoS), TLS, brak zdalnego roota, sensowny `max_connections` + timeouty.
 - **Kontener:** non-root, `read_only` + tmpfs, `cap_drop: ALL`, `no-new-privileges`, pin digest, skan `trivy`.

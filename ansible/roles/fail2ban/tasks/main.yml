@@ -25,6 +25,21 @@
       port    = ssh
       filter  = sshd
 
+      # Warstwa L7 — bany za flood na nginx (uaktywniają się, gdy nginx jest zainstalowany).
+      [nginx-http-auth]
+      enabled = true
+      port    = http,https
+
+      [nginx-limit-req]
+      enabled  = true
+      port     = http,https
+      maxretry = 10
+      findtime = 60
+
+      [nginx-botsearch]
+      enabled = true
+      port    = http,https
+
       [recidive]
       enabled  = true
       bantime  = 30d
