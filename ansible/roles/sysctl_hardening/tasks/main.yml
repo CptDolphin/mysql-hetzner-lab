@@ -11,6 +11,14 @@
       # Sieć: SYN flood + ochrona przed source routing / redirects
       net.ipv4.tcp_syncookies = 1
       net.ipv4.tcp_max_syn_backlog = 4096
+      # Anty-DDoS tuning: szybszy drain backlogu SYN, większe kolejki, ochrona TIME-WAIT
+      net.ipv4.tcp_synack_retries = 2
+      net.ipv4.tcp_rfc1337 = 1
+      net.ipv4.tcp_fin_timeout = 15
+      net.ipv4.tcp_max_tw_buckets = 1440000
+      net.core.somaxconn = 1024
+      net.core.netdev_max_backlog = 16384
+      net.netfilter.nf_conntrack_max = 262144
       net.ipv4.conf.all.rp_filter = 1
       net.ipv4.conf.default.rp_filter = 1
       net.ipv4.conf.all.accept_redirects = 0

@@ -26,15 +26,24 @@
               ct state established,related accept
               ct state invalid drop
 
+              # Odrzuć zniekształcone pakiety TCP (skany NULL / XMAS / SYN+FIN)
+              tcp flags & (fin|syn) == (fin|syn) drop
+              tcp flags & (syn|rst) == (syn|rst) drop
+              tcp flags & (fin|syn|rst|psh|ack|urg) == 0 drop
+
               # ICMP (ping) z limitem — diagnostyka bez nadużyć
               ip protocol icmp icmp type echo-request limit rate 5/second accept
-              ip6 nexthdr ipv6-icmp accept
+              ip6 nexthdr ipv6-icmp icmpv6 type { echo-request, nd-neighbor-solicit, nd-neighbor-advert } accept
 
-              # SSH — limit nowych połączeń (anty-brute-force; resztę dobija fail2ban)
-              tcp dport 22 ct state new limit rate 15/minute accept
+              # SSH — PER-IP rate (anty-brute-force; resztę dobija fail2ban)
+              tcp dport 22 ct state new meter ssh-rate { ip saddr limit rate over 10/minute } drop
+              tcp dport 22 ct state new accept
 
-              # Publiczna aplikacja (80/443) — limit nowych połączeń (anty-flood L4)
-              tcp dport { 80, 443 } ct state new limit rate 50/second burst 100 packets accept
+              # Publiczna aplikacja (80/443) — limity PER-IP (jeden IP nie zżera całego portu):
+              #   conn-count: max równoległych połączeń z jednego IP; new-rate: tempo nowych połączeń z jednego IP
+              tcp dport { 80, 443 } ct state new meter web-conn { ip saddr ct count over 50 } drop
+              tcp dport { 80, 443 } ct state new meter web-rate { ip saddr limit rate over 25/second burst 50 packets } drop
+              tcp dport { 80, 443 } ct state new accept
 
               # 3306 (MySQL) celowo BRAK — baza tylko na 127.0.0.1
           }

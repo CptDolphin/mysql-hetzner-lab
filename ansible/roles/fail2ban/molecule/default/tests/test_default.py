@@ -10,6 +10,7 @@ def test_jail_local(host):
     assert f.exists
     assert "[sshd]" in f.content_string
     assert "[recidive]" in f.content_string
+    assert "[nginx-limit-req]" in f.content_string   # warstwa L7 anty-flood
     assert "nftables-multiport" in f.content_string
 
 
