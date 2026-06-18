@@ -1,0 +1,78 @@
+---
+- name: Wymagaj hasła do bazy (nie w repo)
+  ansible.builtin.assert:
+    that:
+      - deploy_db_password | length > 0
+    fail_msg: "Ustaw deploy_db_password przez Vault/SOPS."
+    quiet: true
+
+- name: Katalog aplikacji
+  ansible.builtin.file:
+    path: "{{ deploy_app_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0750"
+
+- name: Plik .env (poświadczenia bazy)
+  ansible.builtin.copy:
+    dest: "{{ deploy_app_dir }}/.env"
+    owner: root
+    group: root
+    mode: "0600"
+    content: |
+      DB_HOST={{ deploy_db_host }}
+      DB_PORT={{ deploy_db_port }}
+      DB_USER={{ deploy_db_user }}
+      DB_PASSWORD={{ deploy_db_password }}
+      DB_NAME={{ deploy_db_name }}
+      HEARTBEAT_INTERVAL={{ deploy_heartbeat_interval }}
+
+- name: Prod docker-compose (obraz z GHCR, kontener hartowany)
+  ansible.builtin.copy:
+    dest: "{{ deploy_app_dir }}/docker-compose.prod.yml"
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      services:
+        app:
+          image: {{ deploy_image }}
+          env_file: .env
+          restart: unless-stopped
+          read_only: true
+          cap_drop:
+            - ALL
+          security_opt:
+            - no-new-privileges:true
+          ports:
+            - "127.0.0.1:8000:8000"   # tylko dla nginx na hoście
+          deploy:
+            resources:
+              limits:
+                cpus: "0.50"
+                memory: 256M
+          logging:
+            driver: json-file
+            options:
+              max-size: "10m"
+              max-file: "3"
+
+- name: Pull + start apki (poza molecule)
+  community.docker.docker_compose_v2:
+    project_src: "{{ deploy_app_dir }}"
+    files:
+      - docker-compose.prod.yml
+    pull: always
+    state: present
+  when: deploy_manage_compose | bool
+
+- name: Post-deploy smoke (apka odpowiada)
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:8000/"
+    status_code: 200
+  register: deploy_smoke
+  retries: 10
+  delay: 3
+  until: deploy_smoke.status == 200
+  when: deploy_manage_compose | bool

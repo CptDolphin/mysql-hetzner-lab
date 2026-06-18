@@ -1,0 +1,9 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+  vars:
+    deploy_db_password: "molecule-lab-pw"   # tylko test
+    deploy_manage_compose: false            # brak Dockera/obrazu w molecule — testujemy rendering
+  roles:
+    - role: deploy

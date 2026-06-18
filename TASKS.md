@@ -82,7 +82,7 @@ Obrona/DDoS warstwowo → [docs/explanation/security.md](docs/explanation/securi
 ### [~] Faza 7 — Aplikacja demo (Docker) `[app]`
 - **Cel:** serwis insert→delete (przez ProxySQL+TLS) **+ sonda SLI** (`/metrics`); **+ nginx reverse-proxy** (Faza 8); hardening kontenera.
 - **DoD:** cykle insert→delete; tabela pusta po cyklu; `/metrics` (sukces+latency); kontener hardened; smoke OK.
-- **Postęp:** apka FastAPI (heartbeat INSERT→SELECT→DELETE + `/healthz` + `/metrics`), Dockerfile (non-root), compose hardened (read_only/cap_drop/limity), **workflow `app-ci.yml`** (docker compose: app+MySQL → smoke: heartbeat OK + tabela pusta po cyklu). **Zostało:** nginx (Faza 8), `trivy` na obraz, rola deploy na serwer.
+- **Postęp:** apka FastAPI (heartbeat INSERT→SELECT→DELETE + `/healthz` + `/metrics`), Dockerfile non-root, compose hardened, **`app-ci.yml`** (compose smoke + **push obrazu do GHCR** na merge), **rola `deploy`** (prod-compose + `.env` z GHCR-image, `docker compose up` + post-deploy smoke; molecule weryfikuje rendering). **Zostało:** `trivy` na obraz, certbot+domena.
 - **Bramka:** lokalny kontener — brak; deploy przez Ansible — GO.
 
 ### [~] Faza 8 — Security / DDoS: utwardzenie publicznej apki + dowód `[infra]` → [security.md](docs/explanation/security.md) · [under-attack.md](docs/runbooks/under-attack.md)
