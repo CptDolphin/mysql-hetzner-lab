@@ -11,8 +11,9 @@ Decyzja: [ADR-0004](../decisions/0004-github-actions.md). Dyscyplina (z `CLAUDE.
 
 ## Workflowy (`.github/workflows/`)
 - **`ci.yml`** (PR/push): `yamllint` + `gitleaks` + Terraform `fmt`/`init`/`validate`. Szybka bramka.
-- **`ansible-test.yml`** (na `ansible/**`): `ansible-lint` + **Molecule** dla każdej roli mającej `molecule/default/`
-  (harness: [`ansible/molecule-template/`](../../ansible/molecule-template/), deps w `requirements-dev.txt`). Bezpieczny, gdy brak ról.
+- **`ansible-test.yml`** (na `ansible/**`): `ansible-lint`, potem `discover` (wykrywa role z `molecule/default/`) →
+  **Molecule w matrix** (jeden równoległy job per rola, `fail-fast: false` — widać dokładnie która rola padła).
+  Harness: [`ansible/molecule-template/`](../../ansible/molecule-template/), deps w `requirements-dev.txt`. Bezpieczny, gdy brak ról.
 - **`deploy.yml`** (on merge to `main` / `workflow_dispatch`): SSH do publicznego hosta (klucz z GitHub Secrets) →
   `ansible-playbook site.yml` → **post-deploy smoke**. `environment: production` z regułą approval.
 - **`restore-drill.yml`** (`schedule`, tygodniowo): efemeryczny VM → restore + PITR z offsite → asercje → teardown.
