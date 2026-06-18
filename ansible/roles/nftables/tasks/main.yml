@@ -19,11 +19,30 @@
       flush ruleset
 
       table inet filter {
+          # Czarna lista ręcznych banów (runbook under-attack). TRWAŁA: elementy żyją w secie,
+          # więc przeżywają `systemctl reload nftables` (inaczej niż `nft insert rule`, które flush kasuje).
+          #   flags interval = obsługa CIDR (np. 1.2.3.0/24); flags timeout = bany czasowe (auto-wygasają).
+          #   Dodanie:  nft add element inet filter blackhole { <IP|CIDR> timeout 1h }
+          set blackhole {
+              type ipv4_addr
+              flags interval, timeout
+          }
+
+          set blackhole6 {
+              type ipv6_addr
+              flags interval, timeout
+          }
+
           chain input {
               type filter hook input priority 0; policy drop;
 
               iif "lo" accept
               ct state established,related accept
+
+              # Ręczne bany (set @blackhole) — DROP zanim pakiet dotrze do reguł portów.
+              ip saddr @blackhole drop
+              ip6 saddr @blackhole6 drop
+
               ct state invalid drop
 
               # Odrzuć zniekształcone pakiety TCP (skany NULL / XMAS / SYN+FIN)
