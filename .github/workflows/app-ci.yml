@@ -1,0 +1,57 @@
+---
+name: app-ci
+
+on:
+  pull_request:
+    paths: ["app/**", ".github/workflows/app-ci.yml"]
+  push:
+    branches: [main]
+    paths: ["app/**"]
+
+permissions:
+  contents: read
+
+jobs:
+  app:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: docker compose up (apka + MySQL)
+        run: docker compose up -d --build
+
+      - name: Czekaj aż apka odpowie
+        run: |
+          for _ in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:8000/ >/dev/null 2>&1; then break; fi
+            sleep 3
+          done
+          curl -fsS http://127.0.0.1:8000/ | grep -q demo
+
+      - name: Smoke — heartbeat OK + metryki
+        run: |
+          sleep 8
+          curl -fsS http://127.0.0.1:8000/metrics | grep -q app_heartbeat_total
+          curl -fsS http://127.0.0.1:8000/metrics | grep -E 'app_heartbeat_total\{result="ok"\} [1-9]'
+
+      - name: Weryfikacja insert->delete (tabela pusta po cyklu)
+        run: |
+          for _ in $(seq 1 5); do
+            n="$(docker compose exec -T db mysql -uroot -prootpw -N -e \
+              'SELECT COUNT(*) FROM appdb.heartbeat' 2>/dev/null | tr -d '[:space:]')"
+            echo "heartbeat rows=${n}"
+            [ "${n}" = "0" ] && exit 0
+            sleep 2
+          done
+          echo "tabela heartbeat nie wróciła do 0"; exit 1
+
+      - name: Logi przy błędzie
+        if: failure()
+        run: docker compose logs
+
+      - name: Teardown
+        if: always()
+        run: docker compose down -v

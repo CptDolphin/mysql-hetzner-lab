@@ -79,10 +79,10 @@ Obrona/DDoS warstwowo → [docs/explanation/security.md](docs/explanation/securi
 - **Postęp:** archiwizacja binlogów (timer 5 min) ✓ · rola `restore` + **PITR-drill w molecule** (insert A→backup→B/T1→C→DROP→restore do T1→A,B są, C nie) ✓ · runbooki `restore.md`/`pitr.md` ✓. **PITR udowodniony w CI.**
 - **Bramka:** drill na czystej maszynie. Restore na żywej bazie = GO.
 
-### [ ] Faza 7 — Aplikacja demo (Docker) `[app]`
-- **Cel:** serwis insert→delete po 127.0.0.1+TLS (przez ProxySQL) **+ sonda SLI** (`/metrics`: sukces cyklu, round-trip latency);
-  **+ Caddy reverse-proxy** (publiczny 80/443, auto-TLS LE — rola z KontrahentCheck); hardening kontenera (non-root, read-only, cap_drop, cpus/mem_limit, trivy).
-- **DoD:** apka osiągalna publicznie przez HTTPS (Caddy); `docker compose logs` pokazuje cykle; tabela pusta po cyklu; `/metrics` zwraca latency/sukces; `trivy` bez HIGH/CRITICAL; post-deploy smoke OK.
+### [~] Faza 7 — Aplikacja demo (Docker) `[app]`
+- **Cel:** serwis insert→delete (przez ProxySQL+TLS) **+ sonda SLI** (`/metrics`); **+ Caddy reverse-proxy** (Faza 8); hardening kontenera.
+- **DoD:** cykle insert→delete; tabela pusta po cyklu; `/metrics` (sukces+latency); kontener hardened; smoke OK.
+- **Postęp:** apka FastAPI (heartbeat INSERT→SELECT→DELETE + `/healthz` + `/metrics`), Dockerfile (non-root), compose hardened (read_only/cap_drop/limity), **workflow `app-ci.yml`** (docker compose: app+MySQL → smoke: heartbeat OK + tabela pusta po cyklu). **Zostało:** Caddy (Faza 8), `trivy` na obraz, rola deploy na serwer.
 - **Bramka:** lokalny kontener — brak; deploy przez Ansible — GO.
 
 ### [ ] Faza 8 — Security / DDoS: utwardzenie publicznej apki + dowód `[infra]` → [security.md](docs/explanation/security.md) · [under-attack.md](docs/runbooks/under-attack.md)
