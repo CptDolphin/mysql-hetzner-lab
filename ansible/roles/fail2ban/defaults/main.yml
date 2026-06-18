@@ -1,0 +1,8 @@
+---
+fail2ban_bantime: "1h"
+fail2ban_findtime: "10m"
+fail2ban_maxretry: 5
+# Banowanie przez nftables (spójne z rolą nftables; NIE ufw).
+fail2ban_banaction: "nftables-multiport"
+# start/restart usługi — wyłączane w molecule (kontener nie robi active-state).
+fail2ban_manage_service: true

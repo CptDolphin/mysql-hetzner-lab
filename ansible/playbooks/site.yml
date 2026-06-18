@@ -10,3 +10,4 @@
     - common
     - unattended_upgrades
     - sshd_lockdown
+    - fail2ban
