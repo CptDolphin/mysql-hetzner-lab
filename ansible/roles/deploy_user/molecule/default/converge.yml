@@ -1,0 +1,9 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+  vars:
+    deploy_user_ssh_keys:
+      - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAyrMQywYdnSfyzqUmAIQb3GGZXzSjCrbJpZPr9wXP3G molecule-test"
+  roles:
+    - role: deploy_user

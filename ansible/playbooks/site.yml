@@ -8,6 +8,7 @@
   gather_facts: true
   roles:
     - common
+    - deploy_user        # PRZED sshd_lockdown — sshd wpuszcza tylko tego usera
     - unattended_upgrades
     - sshd_lockdown
     - fail2ban
