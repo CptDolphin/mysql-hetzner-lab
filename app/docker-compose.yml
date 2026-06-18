@@ -1,0 +1,41 @@
+# Compose DEV/CI — apka + własny MySQL (do testu integracyjnego).
+# Na prod apka łączy się do hosta przez ProxySQL (DB_HOST=127.0.0.1, DB_PORT=6033),
+# a kontener jest hartowany (read_only, cap_drop, limity) — patrz docs/explanation/architecture.md.
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpw
+      MYSQL_DATABASE: appdb
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: ${DB_PASSWORD:-apppw}
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-prootpw"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  app:
+    build: .
+    environment:
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_USER: appuser
+      DB_PASSWORD: ${DB_PASSWORD:-apppw}
+      DB_NAME: appdb
+      HEARTBEAT_INTERVAL: "3"
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 256M
