@@ -1,0 +1,3 @@
+---
+# rkhunter --update + --propupd (baseline) — wyłączane w molecule (sieć/quirki kontenera).
+rkhunter_run_baseline: true

@@ -1,0 +1,38 @@
+---
+- name: Zainstaluj lynis
+  ansible.builtin.apt:
+    name: lynis
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Katalog na raporty audytu
+  ansible.builtin.file:
+    path: "{{ lynis_report_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0750"
+
+- name: Miesięczny audyt Lynis (cron.monthly)
+  ansible.builtin.copy:
+    dest: /etc/cron.monthly/lynis-audit
+    owner: root
+    group: root
+    mode: "0755"
+    content: |
+      #!/bin/bash
+      # Zarządzane przez rolę lynis. Audyt + hardening_index → syslog (alert na degradację).
+      set -eu
+      REPORT_DIR="{{ lynis_report_dir }}"
+      REPORT_FILE="${REPORT_DIR}/lynis-$(date +%Y-%m-%d).log"
+      mkdir -p "${REPORT_DIR}"
+      lynis audit system --cronjob --quick > "${REPORT_FILE}" 2>&1 || true
+      SCORE="$(grep -oP 'hardening_index=\K\d+' /var/log/lynis-report.dat | tail -1)"
+      SCORE="${SCORE:-0}"
+      # retencja: ostatnie 12 raportów
+      ls -1t "${REPORT_DIR}"/lynis-*.log 2>/dev/null | tail -n +13 | xargs -r rm -f
+      logger -t lynis-audit "hardening_index=${SCORE} (min={{ lynis_min_score }})"
+      if [ "${SCORE}" -lt "{{ lynis_min_score }}" ]; then
+        logger -t lynis-audit "WARNING: hardening_index ${SCORE} ponizej progu {{ lynis_min_score }}"
+      fi

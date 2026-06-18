@@ -88,7 +88,7 @@ Obrona/DDoS warstwowo → [docs/explanation/security.md](docs/explanation/securi
 ### [~] Faza 8 — Security / DDoS: utwardzenie publicznej apki + dowód `[infra]` → [security.md](docs/explanation/security.md) · [under-attack.md](docs/runbooks/under-attack.md)
 - **Cel:** **nginx** reverse-proxy (rate-limit/timeouty/conn-limit/TLS) + `nftables` (synproxy) + jaile `fail2ban`; threat-model STRIDE-lite; **granice (brak CDN) spisane wprost**.
 - **+ Drill DDoS (dowód):** kontrolowany load-test pokazuje, że **MySQL przeżył** (izolacja zasobów) i nginx/fail2ban złapały flood.
-- **Postęp:** `nginx` ✓ · **anty-DDoS++** (nftables per-IP meters, sysctl tuning, fail2ban L7) ✓ · **`trivy`** (CI) ✓ · **threat-model STRIDE** ✓ · **drill DDoS** (`ddos-drill.yml`: flood apki → **MySQL przeżywa**, izolacja zasobów dowiedziona w CI) ✓. **Zostało:** certbot+domena (po infra).
+- **Postęp:** `nginx` ✓ · **anty-DDoS++** (nftables per-IP, sysctl, fail2ban L7) ✓ · `trivy` ✓ · threat-model STRIDE ✓ · drill DDoS ✓ · **`certbot`** (LE + auto-renew + reload-hook; obtain gated do czasu domeny) ✓ · skanery **`rkhunter`**+**`lynis`** ✓. **Zostało:** domena → `certbot_obtain=true`.
 - **DoD:** zewnętrzny skan = 3306 zamknięty, otwarte tylko 22/80/443; drill udokumentowany; `security-scan.yml` zielony.
 - **Bramka:** zmiany FW/proxy na żywym serwerze — GO.
 

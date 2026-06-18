@@ -1,0 +1,12 @@
+---
+galaxy_info:
+  role_name: certbot
+  author: rafal
+  description: Certbot/Let's Encrypt dla nginx — certyfikat + auto-renew + reload hook
+  license: MIT
+  min_ansible_version: "2.17"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - noble
+dependencies: []

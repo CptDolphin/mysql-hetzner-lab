@@ -1,0 +1,12 @@
+---
+galaxy_info:
+  role_name: lynis
+  author: rafal
+  description: Lynis — miesięczny audyt bezpieczeństwa (hardening index do syslog)
+  license: MIT
+  min_ansible_version: "2.17"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - noble
+dependencies: []
