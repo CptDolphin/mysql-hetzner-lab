@@ -17,6 +17,7 @@ services:
 
   app:
     build: .
+    restart: unless-stopped
     environment:
       DB_HOST: db
       DB_PORT: "3306"

@@ -1,0 +1,61 @@
+---
+name: ddos-drill
+
+# Dowód (nie deklaracja): atak na apkę NIE kładzie bazy — izolacja zasobów trzyma.
+# Apka ma limit cpu/mem; flood ją saturuje, ale MySQL (osobny kontener) przeżywa.
+on:
+  workflow_dispatch:
+  pull_request:
+    paths: ["app/**", ".github/workflows/ddos-drill.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  drill:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Stack up (app + MySQL)
+        run: docker compose up -d --build
+
+      - name: Czekaj na apkę
+        run: |
+          for _ in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:8000/ >/dev/null 2>&1; then break; fi
+            sleep 3
+          done
+
+      - name: Baseline — MySQL żyje
+        run: docker compose exec -T db mysqladmin ping -h127.0.0.1 -uroot -prootpw
+
+      - name: FLOOD apki (ab — 20s, 200 równoległych na /)
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq apache2-utils
+          # / nie woła bazy — saturujemy CPU/event-loop apki, nie connection-flood MySQL.
+          ab -t 20 -c 200 -n 1000000 http://127.0.0.1:8000/ || true
+
+      - name: DOWÓD — MySQL przeżył flood apki (izolacja zasobów)
+        run: docker compose exec -T db mysqladmin ping -h127.0.0.1 -uroot -prootpw
+
+      - name: Apka się podnosi po ataku
+        run: |
+          for _ in $(seq 1 20); do
+            if curl -fsS http://127.0.0.1:8000/healthz >/dev/null 2>&1; then
+              echo "apka znów odpowiada"; exit 0
+            fi
+            sleep 3
+          done
+          echo "apka się nie podniosła"; exit 1
+
+      - name: Logi przy błędzie
+        if: failure()
+        run: docker compose logs
+
+      - name: Teardown
+        if: always()
+        run: docker compose down -v
