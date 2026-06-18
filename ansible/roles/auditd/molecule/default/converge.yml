@@ -1,0 +1,8 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+  vars:
+    auditd_manage_service: false   # kontener nie ma podsystemu audytu jądra; testujemy config
+  roles:
+    - role: auditd

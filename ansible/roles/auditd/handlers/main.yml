@@ -1,0 +1,5 @@
+---
+- name: Reload auditd
+  ansible.builtin.command: augenrules --load
+  changed_when: true
+  when: auditd_manage_service | bool
