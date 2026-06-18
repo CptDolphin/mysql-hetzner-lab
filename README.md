@@ -12,13 +12,13 @@ Repo **portfolio/nauka** — nie produkt.
   - architektura · bezpieczeństwo/DDoS · backup-and-recovery · observability · CI/CD · ADR-y
 
 ## Architektura w skrócie
-Aplikacja **publiczna** (80/443) za reverse-proxy **Caddy** (auto-TLS, rate-limit, timeouty); **MySQL prywatny**
+Aplikacja **publiczna** (80/443) za reverse-proxy **nginx** (TLS, rate-limit, timeouty); **MySQL prywatny**
 (`127.0.0.1`, przez ProxySQL); SSH publiczny, utwardzony (key-only + fail2ban). Obrona DDoS warstwowo: sieć Hetznera
 (wolumetryka, auto) + `nftables`/`fail2ban`/rate-limit + izolacja zasobów apka⟂baza. **Bez CDN/VPN — świadomie**
 ([ADR-0005](docs/decisions/0005-ekspozycja-publiczna.md)). Pełny obraz: [docs/explanation/architecture.md](docs/explanation/architecture.md).
 
 ## Stack
-Terraform (`hcloud`) · Ansible (role hardening/mysql/proxysql/backup/caddy/docker-app) · MySQL 8.0 + binlog · ProxySQL ·
+Terraform (`hcloud`) · Ansible (role hardening/mysql/proxysql/backup/nginx/docker-app) · MySQL 8.0 + binlog · ProxySQL ·
 Percona XtraBackup + binlogi (PITR) · Hetzner Storage Box (offsite) · Prometheus/Grafana/Loki (on-box) · GitHub Actions.
 
 ## Reuse

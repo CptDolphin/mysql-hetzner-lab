@@ -19,11 +19,11 @@ Filozofia: **alert na OBJAW (wpływ na użytkownika/SLO), nie na każdą przyczy
 | MySQL | `mysqld_exporter` | `threads_connected/running`, `aborted_connects`, slow queries, InnoDB buffer-pool hit, `Questions`, uptime |
 | Kontener | `cAdvisor` | CPU/RAM apki vs limity (czy izolacja trzyma) |
 | Sonda | apka demo `/metrics` + `blackbox_exporter` | sukces cyklu insert→delete, round-trip latency, endpoint up |
-| Bezpieczeństwo | log fail2ban, auth.log, **Caddy access.log** | ban-rate, nieudane logowania, req/s + 4xx/5xx |
+| Bezpieczeństwo | log fail2ban, auth.log, **nginx access.log** | ban-rate, nieudane logowania, req/s + 4xx/5xx |
 | Backup/DR | textfile collector | wiek ostatniego backupu, wynik ostatniego restore-drilla, lag binlogów |
 
 ## Logi
-MySQL error-log + slow-query-log, `auth.log`, fail2ban, **Caddy access.log**, apka. Pipeline lekki: Promtail/Vector → Loki
+MySQL error-log + slow-query-log, `auth.log`, fail2ban, **nginx access.log**, apka. Pipeline lekki: Promtail/Vector → Loki
 (lub journald + zapytania), retencja krótka (lab). Wrażliwe — bez sekretów w logach.
 
 ## Katalog alertów

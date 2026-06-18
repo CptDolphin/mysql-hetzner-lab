@@ -5,16 +5,16 @@ zapisuje danych* przy podejrzeniu ataku. Cel: utrzymać MySQL i odzyskać dostę
 warstwę ataku, potem reaguj** — nie strzelaj na oślep.
 
 ## 1. Triage — która warstwa? (≤2 min)
-- **Logi Caddy** (`access.log`) — skok req/s? z jakich IP/ścieżek? typ (GET-flood, slowloris, POST-bomby)?
+- **Logi nginx** (`access.log`) — skok req/s? z jakich IP/ścieżek? typ (GET-flood, slowloris, POST-bomby)?
 - Na serwerze: `ss -s` (połączenia), `conntrack -C` vs `nf_conntrack_max`, `mpstat`/`top` (CPU), `fail2ban-client status`.
 - **MySQL żyje?** `threads_connected`, `threads_running` — czy to flood połączeń, czy baza już dławi?
-- Wniosek: **L3/L4 wolumetryczny** (→ absorbuje sieć Hetznera; my chronimy hosta) vs **L7 aplikacyjny** (→ Caddy + host).
+- Wniosek: **L3/L4 wolumetryczny** (→ absorbuje sieć Hetznera; my chronimy hosta) vs **L7 aplikacyjny** (→ nginx + host).
 
 ## 2. Reakcja
 **L7 (najczęstsze) — na hoście, bez CDN:**
-- **Caddy:** zacieśnij `rate_limit` (niższy próg req/min per IP), skróć timeouty, w razie potrzeby tymczasowy `respond 429` na atakowaną ścieżkę.
-- **Blokuj źródła** na poziomie `nftables`/`fail2ban` — IP/podsieci z logów Caddy (bany na **realnych IP**, bez CDN są prawdziwe).
-- Reguły utrwal w Ansible (rola `caddy`/`fail2ban_config`), nie tylko doraźnie.
+- **nginx:** zacieśnij `limit_req` (niższy `rate=`/`burst`) i `limit_conn`, skróć timeouty, w razie potrzeby tymczasowy `return 429` na atakowaną ścieżkę.
+- **Blokuj źródła** na poziomie `nftables`/`fail2ban` — IP/podsieci z logów nginx (bany na **realnych IP**, bez CDN są prawdziwe).
+- Reguły utrwal w Ansible (rola `nginx`/`fail2ban_config`), nie tylko doraźnie.
 
 **Host / L4:**
 - `nftables`: potwierdź synproxy/conn-limit aktywne; dokręć limity połączeń per-IP; podnieś `nf_conntrack_max` jeśli blisko sufitu.
@@ -28,11 +28,11 @@ warstwę ataku, potem reaguj** — nie strzelaj na oślep.
 
 ## 3. Weryfikacja odzysku
 - Sonda apki (insert→delete) znów **green**; round-trip latency wraca pod SLO.
-- `threads_connected`/conntrack/CPU wracają do baseline; ban-rate opada; req/s w Caddy spada.
+- `threads_connected`/conntrack/CPU wracają do baseline; ban-rate opada; req/s w nginx spada.
 
 ## 4. Po incydencie
 - **Postmortem (blameless)** w `../incidents/` — wektor, czas, co zadziałało, co nie, każdy action-item z `Refs #N`.
-- Utrwal skuteczne reguły (Caddy/`nftables`/`fail2ban`) w Ansible **jako kod**, zdejmij doraźne blokady.
+- Utrwal skuteczne reguły (nginx/`nftables`/`fail2ban`) w Ansible **jako kod**, zdejmij doraźne blokady.
 - Dostrój progi alertów, jeśli wykrycie było za wolne. Dopisz wnioski do [security.md](../explanation/security.md).
 
 > Granica (uczciwie): bez CDN duży flood L7 lub wolumetryka ponad auto-mitygację Hetznera **położy publiczną apkę** —

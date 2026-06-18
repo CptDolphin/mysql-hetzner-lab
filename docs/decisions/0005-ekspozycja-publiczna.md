@@ -6,12 +6,12 @@
   pojedynczego, **publicznego** hosta, a nie schować go za cudzą infrastrukturą.
 
 ## Decyzja
-- **Aplikacja publiczna** na 80/443 za reverse-proxy **Caddy** (auto-TLS Let's Encrypt + rate-limit + timeouty + limity ciała/połączeń).
+- **Aplikacja publiczna** na 80/443 za reverse-proxy **nginx** (TLS przez certbot/Let's Encrypt + rate-limit + timeouty + limity ciała/połączeń).
 - **SSH publiczny, utwardzony:** key-only, no-root, `fail2ban`, ew. port niestandardowy.
 - **MySQL niepubliczny** — bind `127.0.0.1` (przez ProxySQL z apki).
 - **Hetzner Cloud Firewall:** allow 22/80/443, reszta deny.
 - **Obrona DDoS warstwowo na hoście:** sieć Hetznera (wolumetryczny L3/L4 — auto) + `nftables` (synproxy, conn-limit) +
-  sysctl (SYN-cookies) + `fail2ban` + rate-limit w Caddy + **izolacja zasobów apka⟂baza**.
+  sysctl (SYN-cookies) + `fail2ban` + rate-limit w nginx + **izolacja zasobów apka⟂baza**.
 
 ## Konsekwencje
 - (+) Uczciwa, mocniejsza historia portfolio: „utwardzony publiczny host", nie „DDoS robi za nas Cloudflare". Prościej (mniej usług zewnętrznych).
@@ -24,5 +24,5 @@
 - **Cloudflare Tunnel + Tailscale (zero portów)** — najsilniejsze technicznie, ale (a) chcemy chronić publiczny host, nie chować;
   (b) ukrywa właściwy problem (obronę robi CF). Na roadmapie jako opcjonalna warstwa, nie teraz.
 - **Sam Cloudflare proxy** — odrzucony wraz z rezygnacją z Cloudflare.
-- **Model KontrahentCheck (Caddy + CF Access + UFW-z-CF-IP)** — sprawdzony, ale oparty o Cloudflare; bierzemy z niego
-  **tylko rolę `caddy`** (reverse-proxy + TLS), bez warstwy CF ([reuse-from-kontrahentcheck.md](../reference/reuse-from-kontrahentcheck.md)).
+- **Model KontrahentCheck (Caddy + CF Access + UFW-z-CF-IP)** — sprawdzony, ale oparty o Cloudflare; nie kopiujemy.
+  **Reverse-proxy piszemy sami na `nginx`** (bardziej znany niż Caddy, łatwiejszy do utrzymania przez innych) ([reuse-from-kontrahentcheck.md](../reference/reuse-from-kontrahentcheck.md)).

@@ -1,0 +1,98 @@
+---
+- name: Zainstaluj nginx
+  ansible.builtin.apt:
+    name: nginx
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Katalog na certyfikaty TLS
+  ansible.builtin.file:
+    path: /etc/nginx/tls
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Certyfikat self-signed (placeholder do czasu Let's Encrypt)
+  ansible.builtin.command:
+    cmd: >-
+      openssl req -x509 -newkey rsa:2048 -nodes -days 365
+      -keyout {{ nginx_tls_key }} -out {{ nginx_tls_cert }}
+      -subj "/CN={{ nginx_server_name }}"
+  args:
+    creates: "{{ nginx_tls_cert }}"
+
+- name: Strefy rate-limit / conn-limit (kontekst http)
+  ansible.builtin.copy:
+    dest: /etc/nginx/conf.d/00-ratelimit.conf
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      limit_req_zone $binary_remote_addr zone=applimit:10m rate={{ nginx_rate_limit }};
+      limit_conn_zone $binary_remote_addr zone=appconn:10m;
+  notify: Reload nginx
+
+- name: Serwer reverse-proxy (TLS + rate-limit + timeouty)
+  ansible.builtin.copy:
+    dest: /etc/nginx/conf.d/app.conf
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      server {
+          listen 80;
+          listen [::]:80;
+          server_name {{ nginx_server_name }};
+          location / { return 301 https://$host$request_uri; }
+      }
+      server {
+          listen 443 ssl http2;
+          listen [::]:443 ssl http2;
+          server_name {{ nginx_server_name }};
+
+          ssl_certificate     {{ nginx_tls_cert }};
+          ssl_certificate_key {{ nginx_tls_key }};
+          ssl_protocols TLSv1.2 TLSv1.3;
+          ssl_prefer_server_ciphers on;
+
+          server_tokens off;
+          add_header X-Frame-Options DENY always;
+          add_header X-Content-Type-Options nosniff always;
+          add_header Referrer-Policy no-referrer always;
+
+          # anty-slowloris
+          client_body_timeout 10s;
+          client_header_timeout 10s;
+          send_timeout 10s;
+          keepalive_timeout 15s;
+          client_max_body_size {{ nginx_client_max_body }};
+
+          location / {
+              limit_req zone=applimit burst={{ nginx_rate_burst }} nodelay;
+              limit_conn appconn {{ nginx_conn_limit }};
+              proxy_pass http://{{ nginx_app_upstream }};
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header X-Forwarded-Proto $scheme;
+          }
+      }
+  notify: Reload nginx
+
+- name: Usuń domyślny serwer nginx
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: Reload nginx
+
+- name: Walidacja konfiguracji nginx
+  ansible.builtin.command: nginx -t
+  changed_when: false
+
+- name: Włącz + uruchom nginx
+  ansible.builtin.systemd:
+    name: nginx
+    enabled: true
+    state: started

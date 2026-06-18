@@ -1,6 +1,6 @@
 ---
-# Główny playbook. Role dokładane fazami (TASKS.md): common, os_hardening (F3)
-# → mysql, proxysql (F4) → backup (F5/6) → caddy, docker_app (F7).
+# Główny playbook. Role dokładane fazami (TASKS.md): common + hardening (F3)
+# → mysql, proxysql (F4) → backup, restore (F5/6) → docker, nginx, apka (F7/8).
 # Każda rola = osobny PR + scenariusz Molecule (converge + idempotencja + Testinfra).
 - name: MySQL lab — konfiguracja hosta
   hosts: mysql_lab
@@ -23,3 +23,4 @@
     - backup
     - restore
     - docker
+    - nginx
