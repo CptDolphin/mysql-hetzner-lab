@@ -1,0 +1,15 @@
+---
+proxysql_version: "3.0.9"
+proxysql_deb_arch: amd64
+
+# Backend MySQL (na tym samym hoście).
+proxysql_backend_host: "127.0.0.1"
+proxysql_backend_port: 3306
+
+# Użytkownik aplikacji (musi zgadzać się z rolą mysql). Hasło z Vault/SOPS.
+proxysql_app_user: appuser
+proxysql_app_password: ""
+
+# Admin interface ProxySQL (localhost:6032). Default ProxySQL = admin:admin.
+proxysql_admin_user: admin
+proxysql_admin_password: admin

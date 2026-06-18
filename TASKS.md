@@ -63,7 +63,7 @@ Obrona/DDoS warstwowo → [docs/explanation/security.md](docs/explanation/securi
 - **Cel:** rola `mysql` — bind 127.0.0.1, secure-installation, least-priv user (per-user MAX_*), binlog ROW, OOM-protect
   **+ ProxySQL** (pooling, miękkie odbicie connection-flood; apka łączy się przez ProxySQL).
 - **DoD:** binlog ON+ROW; zdalne `mysql -h <ip>`=timeout; app-user bez `DROP`; ruch apki przez ProxySQL. Testinfra asertuje.
-- **Postęp:** `mysql` (w toku) · `proxysql` (następne). TLS app-usera: dograny przy ProxySQL/apce.
+- **Postęp:** `mysql` (#9) ✓ · `proxysql` ✓ (backend + app-user przez admin interface, idempotentnie). TLS app↔ProxySQL: przy apce (Faza 7).
 - **Bramka:** play mutujący — GO.
 
 ### [ ] Faza 5 — Backup (XtraBackup) + restore-drill `[infra]` → [backup-and-recovery.md](docs/explanation/backup-and-recovery.md)

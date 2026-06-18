@@ -1,0 +1,82 @@
+---
+- name: Wymagaj ustawionego hasła app-usera (nie w repo)
+  ansible.builtin.assert:
+    that:
+      - proxysql_app_password | length > 0
+    fail_msg: "Ustaw proxysql_app_password przez Vault/SOPS."
+    quiet: true
+
+- name: Pobierz paczkę ProxySQL
+  ansible.builtin.get_url:
+    url: "https://github.com/sysown/proxysql/releases/download/v{{ proxysql_version }}/proxysql_{{ proxysql_version }}-ubuntu24_{{ proxysql_deb_arch }}.deb"
+    dest: "/tmp/proxysql_{{ proxysql_version }}.deb"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Zainstaluj ProxySQL
+  ansible.builtin.apt:
+    deb: "/tmp/proxysql_{{ proxysql_version }}.deb"
+
+- name: Zależności (klient + biblioteka Pythona do admin interface)
+  ansible.builtin.apt:
+    name:
+      - python3-pymysql
+      - default-mysql-client
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Włącz + uruchom ProxySQL
+  ansible.builtin.systemd:
+    name: proxysql
+    enabled: true
+    state: started
+
+- name: Czekaj na admin interface ProxySQL (6032)
+  ansible.builtin.wait_for:
+    host: 127.0.0.1
+    port: 6032
+    timeout: 30
+
+- name: Sprawdź, czy backend już skonfigurowany
+  community.mysql.mysql_query:
+    login_host: 127.0.0.1
+    login_port: 6032
+    login_user: "{{ proxysql_admin_user }}"
+    login_password: "{{ proxysql_admin_password }}"
+    query: "SELECT hostname FROM mysql_servers WHERE hostname='{{ proxysql_backend_host }}' AND port={{ proxysql_backend_port }}"
+  register: proxysql_backend_check
+
+- name: Dodaj backend MySQL + LOAD/SAVE
+  community.mysql.mysql_query:
+    login_host: 127.0.0.1
+    login_port: 6032
+    login_user: "{{ proxysql_admin_user }}"
+    login_password: "{{ proxysql_admin_password }}"
+    query:
+      - "INSERT INTO mysql_servers(hostgroup_id,hostname,port) VALUES (0,'{{ proxysql_backend_host }}',{{ proxysql_backend_port }})"
+      - "LOAD MYSQL SERVERS TO RUNTIME"
+      - "SAVE MYSQL SERVERS TO DISK"
+  when: proxysql_backend_check.query_result[0] | length == 0
+
+- name: Sprawdź, czy app-user już skonfigurowany
+  community.mysql.mysql_query:
+    login_host: 127.0.0.1
+    login_port: 6032
+    login_user: "{{ proxysql_admin_user }}"
+    login_password: "{{ proxysql_admin_password }}"
+    query: "SELECT username FROM mysql_users WHERE username='{{ proxysql_app_user }}'"
+  register: proxysql_user_check
+
+- name: Dodaj app-usera + LOAD/SAVE
+  community.mysql.mysql_query:
+    login_host: 127.0.0.1
+    login_port: 6032
+    login_user: "{{ proxysql_admin_user }}"
+    login_password: "{{ proxysql_admin_password }}"
+    query:
+      - "INSERT INTO mysql_users(username,password,default_hostgroup) VALUES ('{{ proxysql_app_user }}','{{ proxysql_app_password }}',0)"
+      - "LOAD MYSQL USERS TO RUNTIME"
+      - "SAVE MYSQL USERS TO DISK"
+  when: proxysql_user_check.query_result[0] | length == 0
