@@ -1,0 +1,11 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+  vars:
+    mysql_app_password: "molecule-lab-pw"
+    backup_password: "molecule-backup-pw"
+  roles:
+    - role: mysql      # baza
+    - role: backup     # backup + archiwizacja binlogów (skrypty)
+    - role: restore    # skrypt restore/PITR

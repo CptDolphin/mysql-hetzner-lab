@@ -1,0 +1,3 @@
+---
+# Katalog backupów (musi zgadzać się z rolą backup: backup_dir).
+restore_backup_dir: /var/backups/mysql

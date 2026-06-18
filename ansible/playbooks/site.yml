@@ -21,4 +21,5 @@
     - mysql
     - proxysql
     - backup
+    - restore
     - docker
