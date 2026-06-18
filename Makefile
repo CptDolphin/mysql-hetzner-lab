@@ -15,7 +15,7 @@ fmt: ## terraform fmt (recursive)
 
 lint: ## yamllint + ansible-lint
 	yamllint .
-	ansible-lint $(ANSIBLE_DIR)
+	cd $(ANSIBLE_DIR) && ansible-lint
 
 validate: ## terraform validate (bez backendu)
 	terraform -chdir=$(TF_DIR) init -backend=false && terraform -chdir=$(TF_DIR) validate

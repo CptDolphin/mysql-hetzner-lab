@@ -1,0 +1,14 @@
+---
+# Uruchamiany z katalogu ansible/ (cwd) — wtedy ansible.cfg (roles_path=roles)
+# poprawnie rozwiązuje role w playbookach i w molecule converge.
+profile: moderate
+
+exclude_paths:
+  - molecule-template/   # wzorzec scenariusza z placeholderem roli (REPLACE_WITH_ROLE_NAME)
+
+skip_list:
+  - yaml[line-length]    # długość linii pilnuje yamllint
+
+enable_list:
+  - no-changed-when
+  - fqcn-builtins

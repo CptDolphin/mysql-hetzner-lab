@@ -23,11 +23,8 @@ repos:
       - id: yamllint
         args: [--strict]
 
-  - repo: https://github.com/ansible/ansible-lint
-    rev: v24.9.2
-    hooks:
-      - id: ansible-lint
-        files: ^ansible/
+  # ansible-lint — w CI (ansible-test.yml, cwd=ansible/), nie w pre-commit:
+  # hook z roota repo nie rozwiązałby roles_path (role w ansible/roles).
 
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.21.2

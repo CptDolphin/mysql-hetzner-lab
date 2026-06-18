@@ -6,4 +6,5 @@
   hosts: mysql_lab
   become: true
   gather_facts: true
-  roles: []
+  roles:
+    - common
