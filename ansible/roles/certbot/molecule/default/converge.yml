@@ -1,0 +1,6 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+  roles:
+    - role: certbot   # certbot_obtain=false (default) — bez uzyskiwania certu w kontenerze

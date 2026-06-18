@@ -17,6 +17,8 @@
     - sysctl_hardening
     - logrotate
     - auditd
+    - rkhunter
+    - lynis
     - nftables
     - mysql
     - proxysql
@@ -24,4 +26,5 @@
     - restore
     - docker
     - nginx
+    - certbot
     - deploy

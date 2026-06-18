@@ -1,0 +1,12 @@
+---
+galaxy_info:
+  role_name: rkhunter
+  author: rafal
+  description: rkhunter + chkrootkit — cotygodniowy skan rootkitów/backdoorów
+  license: MIT
+  min_ansible_version: "2.17"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - noble
+dependencies: []

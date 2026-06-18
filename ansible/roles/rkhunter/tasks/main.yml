@@ -1,0 +1,54 @@
+---
+- name: Zainstaluj rkhunter + chkrootkit
+  ansible.builtin.apt:
+    name:
+      - rkhunter
+      - chkrootkit
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Konfiguracja rkhunter (mniej false-positive)
+  ansible.builtin.copy:
+    dest: /etc/rkhunter.conf.local
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      # Zarządzane przez rolę rkhunter. Lokalne overrides (apt upgrade ich nie nadpisze).
+      UPDATE_MIRRORS=1
+      MIRRORS_MODE=0
+      WEB_CMD=/usr/bin/wget
+      ALLOWHIDDENDIR=/etc/.java
+      ALLOWHIDDENFILE=/etc/.java
+      # Wyłącz testy hałaśliwe na hoście z Dockerem/apt (FP).
+      DISABLE_TESTS=suspscan hidden_procs deleted_files packet_cap_apps apps
+      USE_SYSLOG=authpriv.notice
+      LOGFILE=/var/log/rkhunter.log
+
+- name: Aktualizuj bazę sygnatur rkhunter
+  ansible.builtin.command: rkhunter --update --quiet
+  register: rkhunter_update
+  changed_when: rkhunter_update.rc == 0
+  failed_when: rkhunter_update.rc not in [0, 2]   # 2 = brak aktualizacji
+  when: rkhunter_run_baseline | bool
+
+- name: Zainicjuj baseline rkhunter (--propupd)
+  ansible.builtin.command: rkhunter --propupd --quiet
+  register: rkhunter_baseline
+  changed_when: rkhunter_baseline.rc == 0
+  failed_when: rkhunter_baseline.rc not in [0, 2]
+  when: rkhunter_run_baseline | bool
+
+- name: Cotygodniowy skan (cron.weekly)
+  ansible.builtin.copy:
+    dest: /etc/cron.weekly/rootkit-scan
+    owner: root
+    group: root
+    mode: "0755"
+    content: |
+      #!/bin/bash
+      # Zarządzane przez rolę rkhunter. Skan do logów + syslog (alert przez observability).
+      set -eu
+      rkhunter --cronjob --report-warnings-only >> /var/log/rkhunter-cron.log 2>&1 || true
+      chkrootkit >> /var/log/chkrootkit-cron.log 2>&1 || true

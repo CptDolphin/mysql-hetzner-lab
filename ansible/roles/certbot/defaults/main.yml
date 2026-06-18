@@ -1,0 +1,6 @@
+---
+certbot_domain: ""
+certbot_email: ""
+# Uzyskanie certyfikatu — domyślnie WYŁĄCZONE (wymaga domeny + DNS + port 80 z internetu).
+# Na prod: ustaw certbot_domain + certbot_email + certbot_obtain=true.
+certbot_obtain: false

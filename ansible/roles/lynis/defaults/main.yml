@@ -1,0 +1,4 @@
+---
+# Próg hardening_index — poniżej = WARNING do syslog (alert na degradację).
+lynis_min_score: 70
+lynis_report_dir: /var/log/lynis-audits

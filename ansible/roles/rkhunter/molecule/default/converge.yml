@@ -1,0 +1,8 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+  vars:
+    rkhunter_run_baseline: false   # bez --update/--propupd w kontenerze
+  roles:
+    - role: rkhunter

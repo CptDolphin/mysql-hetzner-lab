@@ -1,0 +1,51 @@
+---
+- name: Zainstaluj certbot + plugin nginx
+  ansible.builtin.apt:
+    name:
+      - certbot
+      - python3-certbot-nginx
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Katalog deploy-hooków renewal
+  ansible.builtin.file:
+    path: /etc/letsencrypt/renewal-hooks/deploy
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Hook reload nginx po odnowieniu
+  ansible.builtin.copy:
+    dest: /etc/letsencrypt/renewal-hooks/deploy/reload-nginx.sh
+    owner: root
+    group: root
+    mode: "0755"
+    content: |
+      #!/bin/bash
+      # Po odnowieniu certyfikatu przeładuj nginx (nowy cert bez restartu).
+      set -eu
+      systemctl reload nginx || true
+
+- name: Włącz timer auto-renew (certbot.timer)
+  ansible.builtin.systemd:
+    name: certbot.timer
+    enabled: true
+
+- name: Walidacja domeny/email (gdy obtain)
+  ansible.builtin.assert:
+    that:
+      - certbot_domain | length > 0
+      - certbot_email | length > 0
+    fail_msg: "Ustaw certbot_domain i certbot_email, by uzyskać certyfikat."
+    quiet: true
+  when: certbot_obtain | bool
+
+- name: Uzyskaj certyfikat Let's Encrypt (plugin nginx)
+  ansible.builtin.command: >-
+    certbot certonly --nginx --non-interactive --agree-tos
+    --email {{ certbot_email }} -d {{ certbot_domain }}
+  args:
+    creates: "/etc/letsencrypt/live/{{ certbot_domain }}/fullchain.pem"
+  when: certbot_obtain | bool
