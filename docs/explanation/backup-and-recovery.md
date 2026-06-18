@@ -22,6 +22,26 @@ szyfrowanie (age/gpg) → `restic`/SFTP do **Hetzner Storage Box**. Retencja: 7�
 - **PITR-drill:** wstaw dane → zanotuj czas `T` → `DROP TABLE` → restore + replay do sprzed `T` → udowodnij odzysk.
 - Oba na harmonogramie (scheduled), nie raz ręcznie. To one zamieniają „mamy backup" w „mamy odtwarzalność".
 
+PITR-drill (zautomatyzowany w molecule roli `restore`):
+```mermaid
+sequenceDiagram
+    autonumber
+    participant DB as MySQL
+    participant BK as backup
+    participant OFF as Storage Box
+    participant RST as restore
+    Note over DB: INSERT A
+    BK->>DB: xtrabackup --backup + --prepare
+    BK->>OFF: pełny backup (zawiera A) + pozycja binloga
+    Note over DB: INSERT B  (czas T1)
+    Note over DB: INSERT C  (po T1)
+    BK->>OFF: archiwizacja binlogów (B, C)
+    Note over DB: DROP TABLE  💥 katastrofa
+    RST->>OFF: pobierz pełny backup + binlogi
+    RST->>DB: copy-back (A) + mysqlbinlog --stop-datetime=T1
+    Note over DB: ✅ odzyskane: A, B — C (po T1) NIE
+```
+
 ## Runbooki
 - `../runbooks/restore.md` — pełny restore (powstaje w Fazie 5).
 - `../runbooks/pitr.md` — odtworzenie do punktu w czasie (powstaje w Fazie 6).
