@@ -12,12 +12,10 @@ def test_proxysql_running(host):
 
 
 def test_ports_listening(host):
-    assert host.socket("tcp://127.0.0.1:6032").is_listening  # admin
-    # proxy (6033) — bind 0.0.0.0 (default) lub 127.0.0.1
-    assert (
-        host.socket("tcp://0.0.0.0:6033").is_listening
-        or host.socket("tcp://127.0.0.1:6033").is_listening
-    )
+    # sprawdzamy nasłuch portów niezależnie od bind-addr (admin 0.0.0.0:6032)
+    listening = host.check_output("ss -tlnH")
+    assert ":6032" in listening  # admin interface
+    assert ":6033" in listening  # proxy (klienci aplikacji)
 
 
 def test_backend_configured(host):
