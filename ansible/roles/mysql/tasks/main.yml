@@ -32,6 +32,14 @@
       skip-name-resolve
   notify: Restart mysql
 
+- name: Katalog override systemd dla mysql
+  ansible.builtin.file:
+    path: /etc/systemd/system/mysql.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
 - name: Override systemd — ochrona mysqld przed OOM-killerem
   ansible.builtin.copy:
     dest: /etc/systemd/system/mysql.service.d/override.conf
