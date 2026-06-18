@@ -1,0 +1,37 @@
+---
+# Montuje wolumen danych Hetzner (ext4, sformatowany przez Terraform) na /var/lib/mysql
+# ZANIM zainstaluje się MySQL — dane bazy lądują na trwałym wolumenie, który przeżywa
+# odtworzenie serwera (model cattle-server + pet-volume z ADR-0003). Molecule pominięte
+# świadomie: wolumenu Hetzner nie da się wiarygodnie zasymulować w kontenerze — rola
+# weryfikowana na realnym hoście.
+- name: Wykryj urządzenie wolumenu danych Hetzner (scsi-0HC_Volume_*)
+  ansible.builtin.find:
+    paths: /dev/disk/by-id
+    patterns: "scsi-0HC_Volume_*"
+    file_type: link
+  register: mysql_data_volume_found
+
+- name: Wymagaj dokładnie jednego wolumenu danych
+  ansible.builtin.assert:
+    that:
+      - mysql_data_volume_found.files | length == 1
+    fail_msg: >-
+      Oczekiwano 1 wolumenu Hetzner (scsi-0HC_Volume_*) w /dev/disk/by-id,
+      znaleziono {{ mysql_data_volume_found.files | length }}. Sprawdź podłączenie wolumenu.
+    quiet: true
+
+- name: Punkt montowania /var/lib/mysql
+  ansible.builtin.file:
+    path: /var/lib/mysql
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Zamontuj wolumen danych na /var/lib/mysql (ext4)
+  ansible.posix.mount:
+    path: /var/lib/mysql
+    src: "{{ mysql_data_volume_found.files[0].path }}"
+    fstype: ext4
+    opts: defaults,noatime
+    state: mounted

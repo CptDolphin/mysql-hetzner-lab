@@ -1,0 +1,20 @@
+# Sekrety warstwy data — SZYFROWANE SOPS/age (commit OK). Plaintext NIGDY do repo.
+# app_password musi być spójne: apka -> ProxySQL -> MySQL (ten sam użytkownik appuser).
+mysql_app_password: ENC[AES256_GCM,data:hC6p8XelxW49ZeVgvarlujR1Su+cVmGUWllY9qYcc1KZVcGFkgOn/A==,iv:eyd0GiXfFM5yfzEepJ1DAYKD9zzpOypNzWiKkRkK3hA=,tag:VAePl+5Q3qZhByQAKd1WLw==,type:str]
+proxysql_app_password: ENC[AES256_GCM,data:itDzRApFda7sWx068hUZBoGCWQMZyuGM5Tj/lCqMk8ucyjvpy1RrsA==,iv:4XTxCsTG4RKdiGrMqlYg3ClZuDoTw44uTHdjCbwQ+LQ=,tag:g8pkw3jl7T4k3SXFAgkjGg==,type:str]
+backup_password: ENC[AES256_GCM,data:xOTfKKpYFobXjaKTZPOGmpdUeYfRh5SxUAetQDS7WNJujwW0JHLDCQ==,iv:rgiRMi47SxErMqG6asQHzvWBj9nf60IF+5OcadEdgH0=,tag:iAqVIjzOOiG2DfY9ZsWuqA==,type:str]
+sops:
+    age:
+        - recipient: age10ts5z8tukjah83tg4uq47783tzwjgaxz70pm7n49nmqy2sj8q3gqx5knv7
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSA0NWpmU1dCa21RWlJCbUpT
+            T2NNTi9xcUtTcGczL2xjaUEwSkUyODhwWkdZCmoxd2RrWEcrN3lObENySUd3UHhl
+            MGNrcnBQZzBYS2dZUTk2azNiVjRwUzgKLS0tIE55MCs5RzhTT0E2NDFHSU5XL2E5
+            Zm44VnJYcStrNmh1VUY2Q1lya1dmelEKUBuZpUBeiRx41h8u7A5p704HhgIN8UEW
+            RrjHTWzutPfN0CZFZsYel3XnC5vwzBmGinkI/JoZLXgWnTX8yjh76g==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2026-06-18T13:24:08Z"
+    mac: ENC[AES256_GCM,data:8BZUJQ7ttHZYO/raxjw17bFyZy/kj5ADBUiSlTuKfZk1zlZE7AmpH3tP0sgmCZQrFNELnReZV1NPdR3Q0aA23V2Xg5fSlHVHhLh+VlJZCYuPhPhReKcT+v9cvoATRNuS/Y77xXsXi6CJQJPH0UjFr8Ek2AGoYlvg7PL9Nvd7CBc=,iv:dLkxN7vQ7aVsCXgm/Fxm7WNNNHL++bZ+fxYbM3IbZ14=,tag:PZ37XZKF9KEAfZdeqymTBw==,type:str]
+    encrypted_regex: ^(.*[Pp]assword.*|.*[Ss]ecret.*|.*[Tt]oken.*|.*[Kk]ey.*|.*[Pp]assphrase.*)$
+    version: 3.12.2

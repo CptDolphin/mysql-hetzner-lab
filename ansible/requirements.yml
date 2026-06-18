@@ -12,3 +12,5 @@ collections:
     version: ">=2.20.0"
   - name: devsec.hardening   # CIS hardening (Faza 3)
     version: ">=10.0.0"
+  - name: community.sops     # deszyfrowanie sekretów SOPS/age (Faza 0)
+    version: ">=1.6.0"
