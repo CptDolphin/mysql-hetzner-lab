@@ -88,7 +88,7 @@ Obrona/DDoS warstwowo → [docs/explanation/security.md](docs/explanation/securi
 ### [~] Faza 8 — Security / DDoS: utwardzenie publicznej apki + dowód `[infra]` → [security.md](docs/explanation/security.md) · [under-attack.md](docs/runbooks/under-attack.md)
 - **Cel:** **nginx** reverse-proxy (rate-limit/timeouty/conn-limit/TLS) + `nftables` (synproxy) + jaile `fail2ban`; threat-model STRIDE-lite; **granice (brak CDN) spisane wprost**.
 - **+ Drill DDoS (dowód):** kontrolowany load-test pokazuje, że **MySQL przeżył** (izolacja zasobów) i nginx/fail2ban złapały flood.
-- **Postęp:** rola **`nginx`** (reverse-proxy, TLS self-signed→certbot, `limit_req`/`limit_conn`, timeouty, security headers; molecule: `nginx -t` + usługa + porty 80/443). **Zostało:** `trivy` na obraz apki, certbot+domena, drill DDoS, threat-model.
+- **Postęp:** `nginx` ✓ · **anty-DDoS++** (nftables per-IP meters, sysctl tuning, fail2ban L7) ✓ · **`trivy`** na obraz apki (CI) ✓ · **threat-model STRIDE** ✓. **Zostało:** certbot+domena, drill DDoS.
 - **DoD:** zewnętrzny skan = 3306 zamknięty, otwarte tylko 22/80/443; drill udokumentowany; `security-scan.yml` zielony.
 - **Bramka:** zmiany FW/proxy na żywym serwerze — GO.
 
