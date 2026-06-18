@@ -1,0 +1,132 @@
+---
+- name: Wymagaj ustawionego hasła backup-usera (nie w repo)
+  ansible.builtin.assert:
+    that:
+      - backup_password | length > 0
+    fail_msg: "Ustaw backup_password przez Vault/SOPS."
+    quiet: true
+
+# ── Instalacja Percona XtraBackup ────────────────────────────────────
+- name: Pobierz percona-release
+  ansible.builtin.get_url:
+    url: https://repo.percona.com/apt/percona-release_latest.generic_all.deb
+    dest: /tmp/percona-release.deb
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Zainstaluj percona-release
+  ansible.builtin.apt:
+    deb: /tmp/percona-release.deb
+
+- name: Sprawdź, czy repo pxb-80 jest włączone
+  ansible.builtin.stat:
+    path: /etc/apt/sources.list.d/percona-pxb-80-release.list
+  register: backup_pxb_repo
+
+- name: Włącz repo Percona XtraBackup 8.0
+  ansible.builtin.command: percona-release setup -y pxb-80
+  when: not backup_pxb_repo.stat.exists
+  changed_when: true
+
+- name: Zainstaluj percona-xtrabackup-80
+  ansible.builtin.apt:
+    name: percona-xtrabackup-80
+    state: present
+    update_cache: true
+
+# ── Użytkownik backupowy w MySQL (least-priv) ────────────────────────
+- name: Utwórz użytkownika backupowego MySQL
+  community.mysql.mysql_user:
+    name: "{{ backup_user }}"
+    password: "{{ backup_password }}"
+    host: localhost
+    priv: "*.*:RELOAD,PROCESS,LOCK TABLES,REPLICATION CLIENT,BACKUP_ADMIN"
+    state: present
+    login_unix_socket: /run/mysqld/mysqld.sock
+
+- name: Plik z poświadczeniami dla xtrabackup
+  ansible.builtin.copy:
+    dest: /etc/mysql/xtrabackup.my.cnf
+    owner: root
+    group: root
+    mode: "0600"
+    content: |
+      [client]
+      user = {{ backup_user }}
+      password = {{ backup_password }}
+
+# ── Skrypt + harmonogram ─────────────────────────────────────────────
+- name: Katalog na backupy lokalne
+  ansible.builtin.file:
+    path: "{{ backup_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Skrypt backupu
+  ansible.builtin.copy:
+    dest: /usr/local/bin/mysql-backup.sh
+    owner: root
+    group: root
+    mode: "0750"
+    content: |
+      #!/usr/bin/env bash
+      # Pełny backup MySQL przez Percona XtraBackup. Zarządzane przez rolę backup.
+      set -euo pipefail
+      BACKUP_DIR="{{ backup_dir }}"
+      DEFAULTS="/etc/mysql/xtrabackup.my.cnf"
+      TS="$(date +%F_%H%M%S)"
+      DEST="${BACKUP_DIR}/${TS}"
+      mkdir -p "${DEST}"
+      xtrabackup --defaults-extra-file="${DEFAULTS}" --backup --target-dir="${DEST}"
+      xtrabackup --defaults-extra-file="${DEFAULTS}" --prepare --target-dir="${DEST}"
+      find "${BACKUP_DIR}" -maxdepth 1 -type d -name '20*' -mtime +{{ backup_keep_days }} -exec rm -rf {} +
+      {% if backup_offsite_enabled %}
+      export RESTIC_REPOSITORY="{{ backup_restic_repo }}"
+      export RESTIC_PASSWORD="{{ backup_restic_password }}"
+      restic backup "${DEST}"
+      restic forget --keep-daily {{ backup_keep_days }} --prune
+      {% endif %}
+      echo "Backup OK: ${DEST}"
+
+- name: Unit systemd — usługa backupu
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/mysql-backup.service
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=MySQL full backup (XtraBackup)
+      After=mysql.service
+      Requires=mysql.service
+
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/local/bin/mysql-backup.sh
+
+- name: Unit systemd — timer backupu
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/mysql-backup.timer
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=Nightly MySQL backup
+
+      [Timer]
+      OnCalendar={{ backup_timer_oncalendar }}
+      Persistent=true
+
+      [Install]
+      WantedBy=timers.target
+  notify: Reload systemd
+
+- name: Włącz timer backupu
+  ansible.builtin.systemd:
+    name: mysql-backup.timer
+    enabled: true
+    daemon_reload: true

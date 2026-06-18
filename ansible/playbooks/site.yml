@@ -20,4 +20,5 @@
     - nftables
     - mysql
     - proxysql
+    - backup
     - docker

@@ -66,9 +66,11 @@ Obrona/DDoS warstwowo → [docs/explanation/security.md](docs/explanation/securi
 - **Postęp:** `mysql` (#9) ✓ · `proxysql` ✓ (backend + app-user przez admin interface, idempotentnie). TLS app↔ProxySQL: przy apce (Faza 7).
 - **Bramka:** play mutujący — GO.
 
-### [ ] Faza 5 — Backup (XtraBackup) + restore-drill `[infra]` → [backup-and-recovery.md](docs/explanation/backup-and-recovery.md)
-- **Cel:** rola `backup` (nightly XtraBackup → szyfr → Storage Box, retencja) **+ restore-drill w tym samym PR**.
+### [~] Faza 5 — Backup (XtraBackup) + restore-drill `[infra]` → [backup-and-recovery.md](docs/explanation/backup-and-recovery.md)
+- **Cel:** rola `backup` (nightly XtraBackup → szyfr → Storage Box, retencja) **+ restore-drill**.
 - **DoD:** log backupu + rozmiar offsite; drill odtworzył tabelę (checksum zgodny); RTO zapisany; `restore-drill.yml` zielony.
+- **Postęp:** rola `backup` (XtraBackup + backup-user + skrypt + systemd-timer + lokalny backup; molecule = test integracyjny mysql+backup z realnym backupem). Offsite (restic→Storage Box) **gated** (bez sekretów w teście).
+- **Zostało:** restore-drill (Faza 6), ożywienie offsite na realnym hoście.
 - **Bramka:** restore tylko na **czystą** maszynę (nie nadpisuj żywej bazy bez GO).
 
 ### [ ] Faza 6 — PITR (binlogi) + PITR-drill `[infra]` → [backup-and-recovery.md](docs/explanation/backup-and-recovery.md)

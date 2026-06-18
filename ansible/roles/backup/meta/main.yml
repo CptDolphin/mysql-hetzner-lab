@@ -1,0 +1,12 @@
+---
+galaxy_info:
+  role_name: backup
+  author: rafal
+  description: Pełny backup MySQL (Percona XtraBackup) — user, skrypt, systemd-timer, offsite (gated)
+  license: MIT
+  min_ansible_version: "2.17"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - noble
+dependencies: []
