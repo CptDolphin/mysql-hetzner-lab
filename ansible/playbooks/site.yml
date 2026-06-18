@@ -22,6 +22,7 @@
     - { role: rkhunter, tags: [hardening] }
     - { role: lynis, tags: [hardening] }
     - { role: nftables, tags: [hardening] }
+    - { role: mysql_data_volume, tags: [data] }   # PRZED mysql — dane na trwałym wolumenie Hetzner
     - { role: mysql, tags: [data] }
     - { role: proxysql, tags: [data] }
     - { role: backup, tags: [data] }

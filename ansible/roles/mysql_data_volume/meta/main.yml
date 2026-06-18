@@ -1,0 +1,12 @@
+---
+galaxy_info:
+  role_name: mysql_data_volume
+  author: rafal
+  description: Montaż wolumenu danych Hetzner (ext4) na /var/lib/mysql przed instalacją MySQL
+  license: MIT
+  min_ansible_version: "2.17"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - noble
+dependencies: []

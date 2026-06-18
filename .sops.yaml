@@ -6,5 +6,5 @@
 ---
 creation_rules:
   - path_regex: (secrets|ansible/inventory/group_vars)/.*\.sops\.ya?ml$
-    # age: age1PLACEHOLDER_wstaw_publiczny_klucz   # TODO Faza 0 — sekrety
+    age: age10ts5z8tukjah83tg4uq47783tzwjgaxz70pm7n49nmqy2sj8q3gqx5knv7
     encrypted_regex: "^(.*[Pp]assword.*|.*[Ss]ecret.*|.*[Tt]oken.*|.*[Kk]ey.*|.*[Pp]assphrase.*)$"
