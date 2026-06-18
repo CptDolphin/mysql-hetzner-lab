@@ -87,6 +87,27 @@
     state: present
     login_unix_socket: /run/mysqld/mysqld.sock
 
+# App-user jest least-priv (bez CREATE), więc tabelę sondy zakłada uprzywilejowany
+# root — inaczej heartbeat apki (INSERT) nie miałby do czego pisać.
+- name: Sprawdź, czy tabela heartbeat istnieje
+  community.mysql.mysql_query:
+    login_db: "{{ mysql_app_db }}"
+    login_unix_socket: /run/mysqld/mysqld.sock
+    query: >-
+      SELECT table_name FROM information_schema.tables
+      WHERE table_schema = '{{ mysql_app_db }}' AND table_name = 'heartbeat'
+  register: mysql_heartbeat_check
+  changed_when: false
+
+- name: Utwórz tabelę heartbeat (sonda apki)
+  community.mysql.mysql_query:
+    login_db: "{{ mysql_app_db }}"
+    login_unix_socket: /run/mysqld/mysqld.sock
+    query: >-
+      CREATE TABLE heartbeat
+      (id BIGINT AUTO_INCREMENT PRIMARY KEY, ts DATETIME NOT NULL)
+  when: mysql_heartbeat_check.query_result[0] | length == 0
+
 - name: Użytkownik aplikacji (least-priv + limity per-user)
   community.mysql.mysql_user:
     name: "{{ mysql_app_user }}"

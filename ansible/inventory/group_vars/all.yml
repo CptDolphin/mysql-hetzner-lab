@@ -9,3 +9,7 @@ common_timezone: "Europe/Warsaw"
 # miałby jak się zalogować. Klucz PUBLICZNY (jawny) — ten sam, co zasób hcloud_ssh_key.
 deploy_user_ssh_keys:
   - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDmGiikKkDvrQzK2c4g50NHJn4lr12vyOz8AGa6koOLm rafal.walas@protonmail.com"
+
+# Hasło apki do bazy = hasło app-usera (jedno źródło prawdy z SOPS). Apka łączy się
+# przez ProxySQL (6033) jako appuser, więc te same poświadczenia end-to-end.
+deploy_db_password: "{{ mysql_app_password }}"

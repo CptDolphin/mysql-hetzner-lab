@@ -45,8 +45,11 @@
             - ALL
           security_opt:
             - no-new-privileges:true
-          ports:
-            - "127.0.0.1:8000:8000"   # tylko dla nginx na hoście
+          # Sieć hosta: apka łączy się do ProxySQL na 127.0.0.1:6033 HOSTA (w trybie bridge
+          # 127.0.0.1 to loopback kontenera, nie hosta). uvicorn:8000 słucha na hoście —
+          # tylko dla nginx; firewall blokuje 8000 z zewnątrz. Izolacja zasobów (cpu/mem,
+          # cap_drop, read_only, no-new-privileges) zachowana; sieciowa świadomie zluzowana.
+          network_mode: host
           deploy:
             resources:
               limits:
@@ -72,7 +75,7 @@
     url: "http://127.0.0.1:8000/"
     status_code: 200
   register: deploy_smoke
-  retries: 10
-  delay: 3
+  retries: 30          # apka w starcie czeka na bazę (lifespan do ~60s) — budżet ~120s
+  delay: 4
   until: deploy_smoke.status == 200
   when: deploy_manage_compose | bool
