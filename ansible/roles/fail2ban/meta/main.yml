@@ -1,0 +1,12 @@
+---
+galaxy_info:
+  role_name: fail2ban
+  author: rafal
+  description: fail2ban — bany brute-force (sshd + recidive), banaction nftables
+  license: MIT
+  min_ansible_version: "2.17"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - noble
+dependencies: []

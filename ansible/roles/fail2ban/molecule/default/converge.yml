@@ -1,0 +1,8 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+  vars:
+    fail2ban_manage_service: false   # kontener nie wykona start/restart; testujemy config + enable
+  roles:
+    - role: fail2ban
