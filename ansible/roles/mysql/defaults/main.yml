@@ -1,0 +1,16 @@
+---
+mysql_bind_address: "127.0.0.1"
+mysql_binlog_format: "ROW"
+mysql_binlog_expire_seconds: 604800     # 7 dni
+mysql_max_connections: 150
+
+# Baza i użytkownik aplikacji (least-privilege).
+mysql_app_db: "appdb"
+mysql_app_user: "appuser"
+# Hasło USTAW przez Vault/SOPS — pusty default wymusza override (assert w tasks).
+mysql_app_password: ""
+
+# Per-user limity (anty connection/query-flood od strony apki).
+mysql_app_max_user_connections: 20
+mysql_app_max_connections_per_hour: 10000
+mysql_app_max_queries_per_hour: 100000

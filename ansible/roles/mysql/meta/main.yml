@@ -1,0 +1,12 @@
+---
+galaxy_info:
+  role_name: mysql
+  author: rafal
+  description: MySQL 8.0 — bind 127.0.0.1, binlog ROW, least-priv app-user z limitami, OOM-protect
+  license: MIT
+  min_ansible_version: "2.17"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - noble
+dependencies: []

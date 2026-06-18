@@ -1,0 +1,93 @@
+---
+- name: Wymagaj ustawionego hasła app-usera (nie w repo)
+  ansible.builtin.assert:
+    that:
+      - mysql_app_password | length > 0
+    fail_msg: "Ustaw mysql_app_password przez Vault/SOPS — nie commituj do repo."
+    quiet: true
+
+- name: Zainstaluj MySQL server + biblioteka Pythona
+  ansible.builtin.apt:
+    name:
+      - mysql-server
+      - python3-pymysql
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Konfiguracja MySQL (bind 127.0.0.1, binlog ROW, limity)
+  ansible.builtin.copy:
+    dest: /etc/mysql/mysql.conf.d/99-lab.cnf
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      [mysqld]
+      bind-address = {{ mysql_bind_address }}
+      mysqlx-bind-address = {{ mysql_bind_address }}
+      log_bin = /var/lib/mysql/binlog
+      binlog_format = {{ mysql_binlog_format }}
+      binlog_expire_logs_seconds = {{ mysql_binlog_expire_seconds }}
+      max_connections = {{ mysql_max_connections }}
+      skip-name-resolve
+  notify: Restart mysql
+
+- name: Override systemd — ochrona mysqld przed OOM-killerem
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/mysql.service.d/override.conf
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      [Service]
+      OOMScoreAdjust=-800
+  notify: Restart mysql
+
+- name: Włącz + uruchom MySQL
+  ansible.builtin.systemd:
+    name: mysql
+    enabled: true
+    state: started
+    daemon_reload: true
+
+- name: Usuń użytkowników anonimowych
+  community.mysql.mysql_user:
+    name: ""
+    host_all: true
+    state: absent
+    login_unix_socket: /run/mysqld/mysqld.sock
+
+- name: Usuń bazę test
+  community.mysql.mysql_db:
+    name: test
+    state: absent
+    login_unix_socket: /run/mysqld/mysqld.sock
+
+- name: Zablokuj zdalnego roota (zostaje tylko root@localhost przez auth_socket)
+  community.mysql.mysql_user:
+    name: root
+    host: "{{ item }}"
+    state: absent
+    login_unix_socket: /run/mysqld/mysqld.sock
+  loop:
+    - "%"
+    - "{{ ansible_hostname }}"
+
+- name: Baza aplikacji
+  community.mysql.mysql_db:
+    name: "{{ mysql_app_db }}"
+    state: present
+    login_unix_socket: /run/mysqld/mysqld.sock
+
+- name: Użytkownik aplikacji (least-priv + limity per-user)
+  community.mysql.mysql_user:
+    name: "{{ mysql_app_user }}"
+    password: "{{ mysql_app_password }}"
+    host: "127.0.0.1"
+    priv: "{{ mysql_app_db }}.*:SELECT,INSERT,UPDATE,DELETE"
+    resource_limits:
+      MAX_USER_CONNECTIONS: "{{ mysql_app_max_user_connections }}"
+      MAX_CONNECTIONS_PER_HOUR: "{{ mysql_app_max_connections_per_hour }}"
+      MAX_QUERIES_PER_HOUR: "{{ mysql_app_max_queries_per_hour }}"
+    state: present
+    login_unix_socket: /run/mysqld/mysqld.sock
