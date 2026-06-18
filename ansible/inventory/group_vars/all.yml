@@ -3,3 +3,9 @@
 mysql_version: "8.0"
 mysql_bind_address: "127.0.0.1"
 common_timezone: "Europe/Warsaw"
+
+# Klucz(e) SSH admina dla użytkownika `deploy`. KRYTYCZNE anti-lockout: `sshd_lockdown`
+# wyłącza root + ogranicza do `AllowUsers deploy`, więc bez tego klucza `deploy` nie
+# miałby jak się zalogować. Klucz PUBLICZNY (jawny) — ten sam, co zasób hcloud_ssh_key.
+deploy_user_ssh_keys:
+  - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDmGiikKkDvrQzK2c4g50NHJn4lr12vyOz8AGa6koOLm rafal.walas@protonmail.com"
