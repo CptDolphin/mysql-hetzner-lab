@@ -10,7 +10,7 @@ Status: `[ ]` todo · `[~]` doing · `[x]` done.
 | 0002 | Backup | XtraBackup + binlog | [decisions/0002](docs/decisions/0002-backup-xtrabackup.md) |
 | 0003 | Topologia + offsite | 1 serwer cx22 + Storage Box | [decisions/0003](docs/decisions/0003-topologia-1-serwer.md) |
 | 0004 | Repo + CI/CD | GitHub + Actions | [decisions/0004](docs/decisions/0004-github-actions.md) |
-| 0005 | Ekspozycja | Aplikacja publiczna + Caddy (bez CDN/VPN) | [decisions/0005](docs/decisions/0005-ekspozycja-publiczna.md) |
+| 0005 | Ekspozycja | Aplikacja publiczna + nginx (bez CDN/VPN) | [decisions/0005](docs/decisions/0005-ekspozycja-publiczna.md) |
 | 0006 | Stack monitoringu | Self-hosted Prom+Grafana+Loki on-box | [decisions/0006](docs/decisions/0006-monitoring-stack.md) |
 
 > **Bazujemy na rolach z KontrahentCheck** (bliźniacza infra Hetzner+Ansible) — co kopiować vs budować od nowa: [reuse-from-kontrahentcheck.md](docs/reference/reuse-from-kontrahentcheck.md).
@@ -18,7 +18,7 @@ Status: `[ ]` todo · `[~]` doing · `[x]` done.
 ## Cele epica (Definition of Done)
 - Reprodukowalność „od zera": `terraform apply` + `ansible-playbook site.yml` odtwarzają cały stack bez ręcznych kroków.
 - **RPO ≤ 5 min**, **RTO zmierzony** w drillu (cel < 30 min). **PITR udowodniony** (odzysk sprzed `DROP TABLE`).
-- **Aplikacja publiczna, ale utwardzona** (Caddy rate-limit/timeouty + `nftables` + `fail2ban`); **MySQL niepubliczny** (skan: 3306 zamknięty, otwarte tylko 22/80/443).
+- **Aplikacja publiczna, ale utwardzona** (nginx rate-limit/timeouty + `nftables` + `fail2ban`); **MySQL niepubliczny** (skan: 3306 zamknięty, otwarte tylko 22/80/443).
 - CI blokuje PR bez zielonego lint+Molecule+plan; `restore-drill.yml` chodzi na harmonogramie.
 - Apka demo w pętli insert→delete po `127.0.0.1`+TLS, user least-priv.
 
@@ -80,15 +80,16 @@ Obrona/DDoS warstwowo → [docs/explanation/security.md](docs/explanation/securi
 - **Bramka:** drill na czystej maszynie. Restore na żywej bazie = GO.
 
 ### [~] Faza 7 — Aplikacja demo (Docker) `[app]`
-- **Cel:** serwis insert→delete (przez ProxySQL+TLS) **+ sonda SLI** (`/metrics`); **+ Caddy reverse-proxy** (Faza 8); hardening kontenera.
+- **Cel:** serwis insert→delete (przez ProxySQL+TLS) **+ sonda SLI** (`/metrics`); **+ nginx reverse-proxy** (Faza 8); hardening kontenera.
 - **DoD:** cykle insert→delete; tabela pusta po cyklu; `/metrics` (sukces+latency); kontener hardened; smoke OK.
-- **Postęp:** apka FastAPI (heartbeat INSERT→SELECT→DELETE + `/healthz` + `/metrics`), Dockerfile (non-root), compose hardened (read_only/cap_drop/limity), **workflow `app-ci.yml`** (docker compose: app+MySQL → smoke: heartbeat OK + tabela pusta po cyklu). **Zostało:** Caddy (Faza 8), `trivy` na obraz, rola deploy na serwer.
+- **Postęp:** apka FastAPI (heartbeat INSERT→SELECT→DELETE + `/healthz` + `/metrics`), Dockerfile (non-root), compose hardened (read_only/cap_drop/limity), **workflow `app-ci.yml`** (docker compose: app+MySQL → smoke: heartbeat OK + tabela pusta po cyklu). **Zostało:** nginx (Faza 8), `trivy` na obraz, rola deploy na serwer.
 - **Bramka:** lokalny kontener — brak; deploy przez Ansible — GO.
 
-### [ ] Faza 8 — Security / DDoS: utwardzenie publicznej apki + dowód `[infra]` → [security.md](docs/explanation/security.md) · [under-attack.md](docs/runbooks/under-attack.md)
-- **Cel:** dostrojenie **Caddy** (rate-limit/timeouty/conn-limit) + `nftables` (synproxy) + jaile `fail2ban`; threat-model STRIDE-lite; **granice (brak CDN) spisane wprost**.
-- **+ Drill DDoS (dowód):** kontrolowany load-test (k6/vegeta/hping3) pokazuje, że **MySQL przeżył** (izolacja zasobów) i Caddy/fail2ban złapały flood.
-- **DoD:** zewnętrzny skan = 3306 zamknięty, otwarte tylko 22/80/443; drill udokumentowany (wykres przed/po); `security-scan.yml` zielony.
+### [~] Faza 8 — Security / DDoS: utwardzenie publicznej apki + dowód `[infra]` → [security.md](docs/explanation/security.md) · [under-attack.md](docs/runbooks/under-attack.md)
+- **Cel:** **nginx** reverse-proxy (rate-limit/timeouty/conn-limit/TLS) + `nftables` (synproxy) + jaile `fail2ban`; threat-model STRIDE-lite; **granice (brak CDN) spisane wprost**.
+- **+ Drill DDoS (dowód):** kontrolowany load-test pokazuje, że **MySQL przeżył** (izolacja zasobów) i nginx/fail2ban złapały flood.
+- **Postęp:** rola **`nginx`** (reverse-proxy, TLS self-signed→certbot, `limit_req`/`limit_conn`, timeouty, security headers; molecule: `nginx -t` + usługa + porty 80/443). **Zostało:** `trivy` na obraz apki, certbot+domena, drill DDoS, threat-model.
+- **DoD:** zewnętrzny skan = 3306 zamknięty, otwarte tylko 22/80/443; drill udokumentowany; `security-scan.yml` zielony.
 - **Bramka:** zmiany FW/proxy na żywym serwerze — GO.
 
 ### [ ] Faza 9 — Observability, alerting & resilience drills `[infra]` → [observability.md](docs/explanation/observability.md)

@@ -11,7 +11,7 @@ Reguła: **kopiuj hydraulikę, ZROZUM showcase, zbuduj od nowa warstwę MySQL.**
 | Rola/asset z KC | Trafia do |
 |---|---|
 | `hardening`, `sshd_lockdown`, `firewall`, `auditd`, `lynis_audit`, `rkhunter_chkrootkit`, `fail2ban_config` | Faza 3 |
-| **`caddy`** (reverse-proxy: auto-TLS LE + rate-limit + timeouty) | Faza 8 — nasza warstwa ekspozycji publicznej |
+| reverse-proxy — **piszemy własną rolę `nginx`** (KC używał Caddy; nginx bardziej znany), nie kopiujemy | Faza 8 — warstwa ekspozycji publicznej |
 | `observability_stack`, `promtail_shipper`, `monitoring` + `observability/alertmanager`, `blackbox` | Faza 9 |
 | `restic_backup` + workflowy `backup-daily/verify/drill-monthly`, `monthly-dr-drill`, `rollback-drill`, `restore-db.yml`, `disaster-recovery.yml` | Fazy 5/6 (szablon) |
 | `.pre-commit-config.yaml`, `.sops.yml`, `.gitleaks.toml`, `.ansible-lint`, `ansible.cfg`, `requirements.yml` | Faza 0/1 |

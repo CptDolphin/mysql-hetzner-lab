@@ -5,7 +5,7 @@ Decyzje: [ADR-0001](../decisions/0001-provisioning-terraform-ansible.md), [ADR-0
 
 ## Topologia: 1 serwer (cx22)
 MySQL + apka demo (Docker) na jednej maszynie. **MySQL słucha tylko na `127.0.0.1`** (apka łączy się przez ProxySQL po
-localhost). **Aplikacja jest PUBLICZNA** (80/443) za reverse-proxy **Caddy** (auto-TLS Let's Encrypt + rate-limit + timeouty);
+localhost). **Aplikacja jest PUBLICZNA** (80/443) za reverse-proxy **nginx** (TLS przez certbot (Let's Encrypt) + rate-limit + timeouty);
 **SSH publiczny, utwardzony** (key-only + fail2ban). **Bez CDN i bez VPN** — obrona DDoS jest host/proxy-level + automatyczna
 sieciowa Hetznera ([security.md](security.md), [ADR-0005](../decisions/0005-ekspozycja-publiczna.md)).
 
@@ -16,7 +16,7 @@ sieciowa Hetznera ([security.md](security.md), [ADR-0005](../decisions/0005-eksp
         Hetzner: automatyczna ochrona wolumetryczna L3/L4 (auto)
                               │   Hetzner FW: allow 22 (key-only), 80, 443
   ┌───────────────────────────▼──────────── cx22 ──────────────────────────────┐
-  │  Caddy (reverse-proxy: auto-TLS LE, rate-limit, timeouty, conn-limit)        │
+  │  nginx (reverse-proxy: TLS (certbot), rate-limit, timeouty, conn-limit)        │
   │     │ :80/:443 PUBLICZNE                                                     │
   │     ▼                                                                        │
   │  apka demo (Docker: cpu/mem limit, non-root, read-only fs)                   │
@@ -33,8 +33,8 @@ sieciowa Hetznera ([security.md](security.md), [ADR-0005](../decisions/0005-eksp
 ## Komponenty
 - **Terraform (infra):** `hcloud_server` cx22 (Ubuntu 24.04), `hcloud_ssh_key`, `hcloud_volume` (`/var/lib/mysql`,
   `prevent_destroy`), Storage Box, `hcloud_firewall`. Backend stanu poza repo; outputy `sensitive=true`.
-- **Ansible (config):** role `os-hardening`, `caddy`, `mysql`, `proxysql`, `backup`, `docker-app`. Idempotentne.
-- **Caddy (reverse-proxy):** publiczny front 80/443, auto-TLS Let's Encrypt, rate-limit + timeouty (anti-slowloris/flood) — rola z KontrahentCheck ([reuse](../reference/reuse-from-kontrahentcheck.md)).
+- **Ansible (config):** role `os-hardening`, `nginx`, `mysql`, `proxysql`, `backup`, `docker-app`. Idempotentne.
+- **nginx (reverse-proxy):** publiczny front 80/443, TLS przez certbot (Let's Encrypt), rate-limit + timeouty (anti-slowloris/flood) — **własna rola** (KC używał Caddy; nginx wybrany jako bardziej znany).
 - **MySQL 8.0:** bind `127.0.0.1`, `binlog_format=ROW`, TLS, user apki least-priv z limitami per-user.
 - **ProxySQL:** między apką a MySQL — pooling połączeń i miękkie odbicie connection-flood (apka łączy się do ProxySQL, nie wprost).
 - **Monitoring (on-box):** Prometheus+Grafana+Loki+Alertmanager + exportery ([observability.md](observability.md),

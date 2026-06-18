@@ -1,0 +1,12 @@
+---
+nginx_server_name: "_"
+# Upstream = apka (kontener publikuje na 127.0.0.1:8000; nginx jest publicznym frontem).
+nginx_app_upstream: "127.0.0.1:8000"
+# Rate-limit i conn-limit (anty-flood L7).
+nginx_rate_limit: "30r/s"
+nginx_rate_burst: 60
+nginx_conn_limit: 20
+nginx_client_max_body: "1m"
+# TLS: domyślnie self-signed (placeholder). Na prod z domeną → certbot/Let's Encrypt.
+nginx_tls_cert: /etc/nginx/tls/cert.pem
+nginx_tls_key: /etc/nginx/tls/key.pem

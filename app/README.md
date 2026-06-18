@@ -20,7 +20,7 @@ Na prod: `DB_HOST=127.0.0.1`, `DB_PORT=6033` (ProxySQL), TLS przez `DB_SSL_CA`, 
 
 ## Prod vs dev
 - Compose tutaj = **dev/CI** (własny MySQL). Na serwerze apka łączy się do hosta przez ProxySQL,
-  kontener hartowany (`read_only`, `cap_drop: ALL`, `no-new-privileges`, limity cpu/mem) i wystawiony przez Caddy.
+  kontener hartowany (`read_only`, `cap_drop: ALL`, `no-new-privileges`, limity cpu/mem) i wystawiony przez nginx.
 - App-user na prod jest **least-priv** (bez `CREATE`) — tabelę `heartbeat` tworzy się raz uprzywilejowanym userem.
 
 Szczegóły: [../docs/explanation/architecture.md](../docs/explanation/architecture.md).
