@@ -8,7 +8,8 @@ def test_swapfile_exists(host):
 
 
 def test_swapfile_is_swap(host):
-    assert "swap" in host.check_output("file -bs /swapfile")
+    # mkswap zapisuje sygnaturę "SWAPSPACE2" w nagłówku — bez zależności od `file`
+    assert host.run("grep -aq SWAPSPACE2 /swapfile").rc == 0
 
 
 def test_fstab_entry(host):

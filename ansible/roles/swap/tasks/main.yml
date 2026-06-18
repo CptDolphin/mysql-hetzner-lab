@@ -3,6 +3,7 @@
   ansible.builtin.command: "dd if=/dev/zero of={{ swap_file_path }} bs=1M count={{ swap_size_mb }}"
   args:
     creates: "{{ swap_file_path }}"
+  register: swap_dd
 
 - name: Uprawnienia swapfile 0600
   ansible.builtin.file:
@@ -11,14 +12,9 @@
     group: root
     mode: "0600"
 
-- name: Sprawdź, czy plik jest już sformatowany jako swap
-  ansible.builtin.command: "file -bs {{ swap_file_path }}"
-  register: swap_filetype
-  changed_when: false
-
-- name: Sformatuj swap (mkswap)
+- name: Sformatuj swap (mkswap) — tylko gdy plik świeżo utworzony
   ansible.builtin.command: "mkswap {{ swap_file_path }}"
-  when: "'swap' not in swap_filetype.stdout"
+  when: swap_dd is changed
   changed_when: true
 
 - name: Wpis w /etc/fstab (bez montowania)
