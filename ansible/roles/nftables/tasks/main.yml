@@ -1,0 +1,61 @@
+---
+- name: Zainstaluj nftables
+  ansible.builtin.apt:
+    name: nftables
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Ruleset /etc/nftables.conf
+  ansible.builtin.copy:
+    dest: /etc/nftables.conf
+    owner: root
+    group: root
+    mode: "0644"
+    validate: "nft -c -f %s"
+    content: |
+      #!/usr/sbin/nft -f
+      # Zarządzane przez rolę nftables. Defense-in-depth ZA Hetzner Cloud Firewall.
+      flush ruleset
+
+      table inet filter {
+          chain input {
+              type filter hook input priority 0; policy drop;
+
+              iif "lo" accept
+              ct state established,related accept
+              ct state invalid drop
+
+              # ICMP (ping) z limitem — diagnostyka bez nadużyć
+              ip protocol icmp icmp type echo-request limit rate 5/second accept
+              ip6 nexthdr ipv6-icmp accept
+
+              # SSH — limit nowych połączeń (anty-brute-force; resztę dobija fail2ban)
+              tcp dport 22 ct state new limit rate 15/minute accept
+
+              # Publiczna aplikacja (80/443) — limit nowych połączeń (anty-flood L4)
+              tcp dport { 80, 443 } ct state new limit rate 50/second burst 100 packets accept
+
+              # 3306 (MySQL) celowo BRAK — baza tylko na 127.0.0.1
+          }
+
+          chain forward {
+              type filter hook forward priority 0; policy drop;
+          }
+
+          chain output {
+              type filter hook output priority 0; policy accept;
+          }
+      }
+  notify: Reload nftables
+
+- name: Włącz nftables (autostart)
+  ansible.builtin.systemd:
+    name: nftables
+    enabled: true
+
+- name: Uruchom nftables (poza molecule)
+  ansible.builtin.systemd:
+    name: nftables
+    state: started
+  when: nftables_manage_service | bool

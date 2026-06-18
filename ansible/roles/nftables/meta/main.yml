@@ -1,0 +1,12 @@
+---
+galaxy_info:
+  role_name: nftables
+  author: rafal
+  description: Firewall nftables — default-deny inbound, allow 22/80/443, rate-limit (defense-in-depth za Hetzner FW)
+  license: MIT
+  min_ansible_version: "2.17"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - noble
+dependencies: []
