@@ -1,0 +1,10 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+  vars:
+    mysql_app_password: "molecule-lab-pw"      # tylko test
+    backup_password: "molecule-backup-pw"      # tylko test
+  roles:
+    - role: mysql      # backend do backupu
+    - role: backup

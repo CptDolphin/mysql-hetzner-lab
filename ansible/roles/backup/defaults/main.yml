@@ -1,0 +1,13 @@
+---
+# Użytkownik MySQL dla XtraBackup (least-priv: tylko uprawnienia backupowe). Hasło z Vault/SOPS.
+backup_user: xtrabackup
+backup_password: ""
+
+backup_dir: /var/backups/mysql
+backup_keep_days: 7
+backup_timer_oncalendar: "*-*-* 02:30:00"
+
+# Offsite (restic → Hetzner Storage Box). Domyślnie wyłączone (gated) — w teście/lokalnie tylko backup lokalny.
+backup_offsite_enabled: false
+backup_restic_repo: ""
+backup_restic_password: ""
