@@ -12,3 +12,4 @@
     - sshd_lockdown
     - fail2ban
     - sysctl_hardening
+    - nftables

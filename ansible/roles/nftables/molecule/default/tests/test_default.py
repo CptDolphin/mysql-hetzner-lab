@@ -1,0 +1,22 @@
+"""Testinfra — rola nftables: pakiet, ruleset (default-deny + porty), walidacja, autostart."""
+
+
+def test_nftables_installed(host):
+    assert host.package("nftables").is_installed
+
+
+def test_ruleset_file(host):
+    f = host.file("/etc/nftables.conf")
+    assert f.exists
+    assert "policy drop" in f.content_string
+    assert "tcp dport 22" in f.content_string
+    assert "tcp dport { 80, 443 }" in f.content_string
+
+
+def test_ruleset_syntax_valid(host):
+    # nft -c = dry-run check składni ruleset (bez ładowania)
+    assert host.run("nft -c -f /etc/nftables.conf").rc == 0
+
+
+def test_nftables_enabled(host):
+    assert host.service("nftables").is_enabled

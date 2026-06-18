@@ -1,0 +1,4 @@
+---
+# start/reload usługi — wyłączane w molecule (kontener nie robi active-state systemd).
+# Składnia ruleset i tak jest walidowana przez `nft -c -f` przy każdym uruchomieniu.
+nftables_manage_service: true
