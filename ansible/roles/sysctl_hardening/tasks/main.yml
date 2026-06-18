@@ -1,0 +1,43 @@
+---
+- name: Sysctl hardening — /etc/sysctl.d/99-hardening.conf
+  ansible.builtin.copy:
+    dest: /etc/sysctl.d/99-hardening.conf
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      # Zarządzane przez rolę sysctl_hardening — CIS Benchmark Ubuntu 24.04 + Lynis.
+
+      # Sieć: SYN flood + ochrona przed source routing / redirects
+      net.ipv4.tcp_syncookies = 1
+      net.ipv4.tcp_max_syn_backlog = 4096
+      net.ipv4.conf.all.rp_filter = 1
+      net.ipv4.conf.default.rp_filter = 1
+      net.ipv4.conf.all.accept_redirects = 0
+      net.ipv4.conf.default.accept_redirects = 0
+      net.ipv4.conf.all.send_redirects = 0
+      net.ipv4.conf.default.send_redirects = 0
+      net.ipv4.conf.all.accept_source_route = 0
+      net.ipv4.conf.default.accept_source_route = 0
+      net.ipv4.icmp_echo_ignore_broadcasts = 1
+      net.ipv4.icmp_ignore_bogus_error_responses = 1
+      net.ipv4.conf.all.log_martians = 1
+      net.ipv6.conf.all.accept_redirects = 0
+      net.ipv6.conf.default.accept_redirects = 0
+      net.ipv6.conf.all.accept_source_route = 0
+      net.ipv6.conf.default.accept_source_route = 0
+
+      # Jądro
+      kernel.randomize_va_space = 2
+      kernel.dmesg_restrict = 1
+      kernel.kptr_restrict = 2
+      kernel.sysrq = 0
+      net.core.bpf_jit_harden = 2
+      fs.suid_dumpable = 0
+
+      # System plików
+      fs.protected_hardlinks = 1
+      fs.protected_symlinks = 1
+      fs.protected_fifos = 2
+      fs.protected_regular = 2
+  notify: Reload sysctl

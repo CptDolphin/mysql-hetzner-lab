@@ -1,0 +1,4 @@
+---
+# Zastosuj wartości na żywym jądrze (sysctl --system). Wyłączane w molecule —
+# w kontenerze część kluczy /proc/sys jest read-only. Plik konfiguracyjny i tak powstaje.
+sysctl_hardening_apply: true
