@@ -14,6 +14,10 @@ def test_ruleset_file(host):
     # limity PER-IP (nie globalne) — kluczowe dla obrony przed pojedynczym atakującym IP
     assert "meter web-conn" in f.content_string
     assert "meter web-rate" in f.content_string
+    # named-set czarnej listy — ręczne bany IP/CIDR przeżywają reload reguł (runbook under-attack 2A)
+    assert "set blackhole" in f.content_string
+    assert "ip saddr @blackhole drop" in f.content_string
+    assert "ip6 saddr @blackhole6 drop" in f.content_string
 
 
 def test_ruleset_syntax_valid(host):

@@ -41,9 +41,12 @@ mysql -e "SHOW PROCESSLIST" | head -40
 
 ### 2A. Flood HTTP (L7) — najczęstsze
 ```bash
-# (1) Natychmiast zablokuj źródło w nftables (działa od razu, przeżywa do reloadu reguł):
-nft insert rule inet filter input ip saddr <IP> drop
-nft insert rule inet filter input ip saddr <CIDR>/24 drop      # cała podsieć, jeśli rotują IP
+# (1) Natychmiast i TRWALE zablokuj źródło — set @blackhole (przeżywa `systemctl reload nftables`):
+nft add element inet filter blackhole { <IP> timeout 1h }          # pojedynczy IP, auto-wygasa po 1h
+nft add element inet filter blackhole { <CIDR>/24 timeout 1h }     # cała podsieć, jeśli rotują IP
+nft add element inet filter blackhole6 { <IPv6> timeout 1h }       # odpowiednik dla IPv6
+#   Podgląd/zdjęcie bana: nft list set inet filter blackhole  |  nft delete element inet filter blackhole { <IP> }
+#   (Doraźne `nft insert rule inet filter input ip saddr <IP> drop` też tnie od razu, ale GINIE po reloadzie reguł — wolimy set.)
 # (2) Albo przez fail2ban (spójne z banaction nftables, z czasem bana):
 fail2ban-client set nginx-limit-req banip <IP>
 # (3) Zaostrz rate-limit globalnie (edytuj, potem reload — nginx NIE gubi połączeń):
@@ -108,8 +111,8 @@ tail -n 2000 /var/log/nginx/access.log | wc -l     # req/s opada
 Sonda apki (insert→delete) znów green, round-trip latency pod SLO.
 
 ## 4. Po incydencie
-- **Utrwal skuteczne blokady jako kod** (doraźne `nft insert` znika po reloadzie):
-  - trwały ban IP/podsieci → rola `fail2ban`/`nftables` (PR), nie tylko `nft insert`.
+- **Utrwal skuteczne blokady jako kod** (element `@blackhole` przeżywa reload, ale NIE reboot ani re-run roli — `nft insert` ginie już po reloadzie):
+  - trwały ban IP/podsieci → rola `fail2ban`/`nftables` (PR), nie tylko `nft add element`/`nft insert`.
   - nowy próg rate-limit → `nginx_rate_limit`/`nginx_rate_burst` w roli `nginx` (PR).
 - **Postmortem (blameless)** w `../incidents/`: wektor, czas wykrycia/reakcji, co zadziałało, action-items z `Refs #N`.
 - Dostrój progi alertów, jeśli wykrycie było za wolne. Wnioski → [security.md](../explanation/security.md).
