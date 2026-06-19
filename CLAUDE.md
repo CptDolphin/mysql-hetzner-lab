@@ -7,7 +7,7 @@
 - **`TASKS.md`** — board/roadmapa (fazy, DoD, status, bramki). Start sesji: co w toku / następny krok.
 - **`docs/README.md`** — mapa wiedzy „co gdzie".
 - `docs/explanation/` — jak działa: `architecture` · `security` · `backup-and-recovery` · `ci-cd-and-testing`.
-- `docs/decisions/` — ADR-y (DLACZEGO) · `docs/runbooks/` — procedury · `docs/incidents/` — postmortemy.
+- `docs/decisions/` — ADR-y (DLACZEGO) · `docs/runbooks/` — procedury. Postmortem → `docs/incidents/` (zakładany przy 1. incydencie).
 
 Odkrywaj pliki (`ls docs/`), nie zgaduj nazw. Ten plik = niezmienniki procesu; szczegóły żyją w `docs/` (zmieniają się).
 

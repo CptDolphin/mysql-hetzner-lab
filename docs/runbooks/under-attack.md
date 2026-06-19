@@ -139,7 +139,7 @@ Sonda apki (insert→delete) znów green, round-trip latency pod SLO.
 - **Utrwal skuteczne blokady jako kod** (element `@blackhole` przeżywa reload, ale NIE reboot ani re-run roli — `nft insert` ginie już po reloadzie):
   - trwały ban IP/podsieci → rola `fail2ban`/`nftables` (PR), nie tylko `nft add element`/`nft insert`.
   - nowy próg rate-limit → `nginx_rate_limit`/`nginx_rate_burst` w roli `nginx` (PR).
-- **Postmortem (blameless)** w `../incidents/`: wektor, czas wykrycia/reakcji, co zadziałało, action-items z `Refs #N`.
+- **Postmortem (blameless)** w `docs/incidents/<data>.md` (folder przy 1. incydencie): wektor, czas wykrycia/reakcji, co zadziałało, action-items z `Refs #N`.
 - Dostrój progi alertów, jeśli wykrycie było za wolne. Wnioski → [security.md](../explanation/security.md).
 
 ---

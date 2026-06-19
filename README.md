@@ -31,7 +31,7 @@ Percona XtraBackup + binlogi (PITR) · Hetzner Storage Box (offsite) · Promethe
 
 ## Reuse
 Część ról (hardening, observability, backup-orkiestracja, configi) adaptujemy z bliźniaczego repo KontrahentCheck —
-mapa: [docs/reference/reuse-from-kontrahentcheck.md](docs/reference/reuse-from-kontrahentcheck.md).
+mapa: [docs/reuse-from-kontrahentcheck.md](docs/reuse-from-kontrahentcheck.md).
 
 ## Status
 Wczesny bootstrap (Faza 0 — scaffolding). Roadmapa i bramki: [TASKS.md](TASKS.md). Koszt docelowy ~€5-8/mc.

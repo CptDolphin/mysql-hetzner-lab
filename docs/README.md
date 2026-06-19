@@ -7,8 +7,9 @@ Dokumentacja żyje tu (nie w `CLAUDE.md`, nie w opisie issue). Gatunek = folder 
 | `explanation/` | jak działa: `architecture` · `security` · `backup-and-recovery` · `ci-cd-and-testing` · `observability` | jest |
 | `decisions/` | ADR-y — DLACZEGO tak zdecydowano (MADR) | 0001–0006 |
 | `runbooks/` | procedury krok-po-kroku | `under-attack` jest; restore/pitr/rotacja → Fazy 5/6/8 |
-| `reference/` | lookup + `reuse-from-kontrahentcheck` (co kopiować z bliźniaczego repo) | reuse jest; porty/rpo-rto TBD |
-| `incidents/` | postmortemy (blameless) | gdy wystąpią |
+
+Top-level: [`reuse-from-kontrahentcheck.md`](reuse-from-kontrahentcheck.md) — co kopiować z bliźniaczego repo.
+Postmortemy (blameless) → `docs/incidents/<data>.md` (folder zakładamy przy pierwszym incydencie, nie z góry).
 
 ## Decision-tree „gdzie szukać / co pisać"
 - Chcę **zrozumieć, jak coś działa** → `explanation/`.

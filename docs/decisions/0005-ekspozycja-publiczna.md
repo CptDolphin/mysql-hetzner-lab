@@ -25,4 +25,4 @@
   (b) ukrywa właściwy problem (obronę robi CF). Na roadmapie jako opcjonalna warstwa, nie teraz.
 - **Sam Cloudflare proxy** — odrzucony wraz z rezygnacją z Cloudflare.
 - **Model KontrahentCheck (Caddy + CF Access + UFW-z-CF-IP)** — sprawdzony, ale oparty o Cloudflare; nie kopiujemy.
-  **Reverse-proxy piszemy sami na `nginx`** (bardziej znany niż Caddy, łatwiejszy do utrzymania przez innych) ([reuse-from-kontrahentcheck.md](../reference/reuse-from-kontrahentcheck.md)).
+  **Reverse-proxy piszemy sami na `nginx`** (bardziej znany niż Caddy, łatwiejszy do utrzymania przez innych) ([reuse-from-kontrahentcheck.md](../reuse-from-kontrahentcheck.md)).

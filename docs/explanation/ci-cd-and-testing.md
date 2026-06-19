@@ -23,7 +23,7 @@ Decyzja: [ADR-0004](../decisions/0004-github-actions.md). Dyscyplina (z `CLAUDE.
 ## Runnery
 - **GitHub-hosted** do CI (czyste, efemeryczne, bez dostępu do prod).
 - **Deploy** po **SSH (key-only)** do publicznego hosta; klucz w GitHub Secrets, `fail2ban` chroni 22. Opcja domknięcia 22 na później:
-  self-hosted runner (rola z KontrahentCheck — [reuse](../reference/reuse-from-kontrahentcheck.md)).
+  self-hosted runner (rola z KontrahentCheck — [reuse](../reuse-from-kontrahentcheck.md)).
 - Deploy **nigdy z forka**; akcje mutujące serwer za regułą approval (`environment`).
 
 ## Sekrety

@@ -27,7 +27,7 @@ domeny (`weryfikatorpartnera`) · ~50 workflowów `prod-ekrs-*`/`prod-krs-*` (ic
 `secrets/`, odszyfrowany vault). **SOPS prze-kluczuj na nowo.**
 
 ## Świadomie NIE bierzemy (decyzje projektu)
-- `cloudflare_*` + `cloudflare_ufw_sync` + CF Access — [ADR-0005](../decisions/0005-ekspozycja-publiczna.md): bez Cloudflare.
+- `cloudflare_*` + `cloudflare_ufw_sync` + CF Access — [ADR-0005](decisions/0005-ekspozycja-publiczna.md): bez Cloudflare.
 - `github_actions_runner` / `runner_*` — tylko jeśli zamkniemy SSH; na razie deploy po SSH key-only.
 - `crowdsec` — zostajemy przy `fail2ban` (prościej).
 
