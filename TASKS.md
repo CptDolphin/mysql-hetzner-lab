@@ -13,7 +13,7 @@ Status: `[ ]` todo · `[~]` doing · `[x]` done.
 | 0005 | Ekspozycja | Aplikacja publiczna + nginx (bez CDN/VPN) | [decisions/0005](docs/decisions/0005-ekspozycja-publiczna.md) |
 | 0006 | Stack monitoringu | Self-hosted Prom+Grafana+Loki on-box | [decisions/0006](docs/decisions/0006-monitoring-stack.md) |
 
-> **Bazujemy na rolach z KontrahentCheck** (bliźniacza infra Hetzner+Ansible) — co kopiować vs budować od nowa: [reuse-from-kontrahentcheck.md](docs/reference/reuse-from-kontrahentcheck.md).
+> **Bazujemy na rolach z KontrahentCheck** (bliźniacza infra Hetzner+Ansible) — co kopiować vs budować od nowa: [reuse-from-kontrahentcheck.md](docs/reuse-from-kontrahentcheck.md).
 
 ## Cele epica (Definition of Done)
 - Reprodukowalność „od zera": `terraform apply` + `ansible-playbook site.yml` odtwarzają cały stack bez ręcznych kroków.
